@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Customize the next two lines for your own gallery. -->
+    <title>build-h5 · Gallery</title>
+    <meta name="description" content="Pages generated from conversations by build-h5." />
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        --bg: #fbfbfd;
+        --surface: #ffffff;
+        --text: #1d1d1f;
+        --text-2: #565659;
+        --text-3: #86868b;
+        --rule: #e6e6eb;
+        --accent: #2563eb;
+        --accent-soft: #eaf1ff;
+        --max-w: 1040px;
+        --space-1: 8px;
+        --space-2: 16px;
+        --space-3: 24px;
+        --space-4: 40px;
+        --space-5: 64px;
+        --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", Roboto, Helvetica, Arial,
+          sans-serif;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #0d0d0f;
+          --text: #f5f5f7;
+          --text-2: #c7c7cc;
+          --text-3: #8a8a8f;
+          --rule: #1f1f24;
+          --accent: #5b8cff;
+          --accent-soft: #10203d;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 17px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      a { color: inherit; text-decoration: none; }
+      .wrap { width: 100%; max-width: var(--max-w); margin: 0 auto; padding: 0 var(--space-3); }
+
+      header.site {
+        padding: var(--space-5) 0 var(--space-3);
+        border-bottom: 1px solid var(--rule);
+      }
+      header.site h1 {
+        margin: 0;
+        font-size: 40px;
+        font-weight: 600;
+      }
+      header.site p {
+        margin: var(--space-1) 0 0;
+        color: var(--text-3);
+        font-size: 15px;
+      }
+
+      main.gallery { flex: 1; padding: var(--space-4) 0 var(--space-5); }
+      .gallery-layout {
+        display: grid;
+        grid-template-columns: 188px minmax(0, 1fr);
+        gap: var(--space-4);
+        align-items: start;
+      }
+
+      .tags {
+        position: sticky;
+        top: var(--space-3);
+        padding-right: var(--space-2);
+      }
+      .tags h2 {
+        margin: 0 0 var(--space-2);
+        color: var(--text-3);
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .tag-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .tag-button {
+        width: 100%;
+        min-height: 36px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-1);
+        padding: 6px 10px;
+        font: inherit;
+        font-size: 14px;
+        text-align: left;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      }
+      .tag-button:hover {
+        background: var(--surface);
+        border-color: var(--rule);
+        color: var(--text);
+      }
+      .tag-button[aria-pressed="true"] {
+        background: var(--accent-soft);
+        border-color: color-mix(in srgb, var(--accent), transparent 68%);
+        color: var(--accent);
+      }
+      .tag-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tag-count {
+        flex: none;
+        color: var(--text-3);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .gallery-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2);
+        min-height: 28px;
+      }
+      .gallery-head h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-2);
+      }
+      .gallery-count {
+        color: var(--text-3);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      section.year {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        margin: var(--space-4) 0 var(--space-2);
+      }
+      section.year:first-of-type { margin-top: var(--space-3); }
+      section.year h3 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--text-3);
+        font-variant-numeric: tabular-nums;
+      }
+      section.year .rule { flex: 1; height: 1px; background: var(--rule); }
+
+      ul.list { list-style: none; margin: 0; padding: 0; }
+      ul.list li { border-bottom: 1px solid var(--rule); }
+      ul.list a {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: baseline;
+        gap: var(--space-3);
+        padding: var(--space-2) 0;
+        min-height: 44px;
+        transition: color 0.15s ease;
+      }
+      ul.list a:hover { color: var(--accent); }
+      ul.list .title {
+        min-width: 0;
+        font-size: 17px;
+        font-weight: 450;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      ul.list .date {
+        flex: none;
+        color: var(--text-3);
+        font-family: var(--mono);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+      }
+      .entry-tags {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: -6px;
+      }
+      .entry-tag {
+        color: var(--text-3);
+        font-size: 12px;
+      }
+
+      .empty {
+        color: var(--text-3);
+        font-size: 15px;
+        padding: var(--space-3) 0;
+      }
+      .empty code {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+
+      footer.site {
+        border-top: 1px solid var(--rule);
+        padding: var(--space-3) 0 var(--space-4);
+        color: var(--text-3);
+        font-size: 13px;
+      }
+
+      @media (max-width: 760px) {
+        .wrap { padding: 0 var(--space-2); }
+        header.site { padding-top: var(--space-4); }
+        header.site h1 { font-size: 32px; }
+        .gallery-layout {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: var(--space-3);
+        }
+        .entries { width: 100%; }
+        .tags {
+          position: static;
+          width: 100%;
+          padding-right: 0;
+          padding-bottom: var(--space-2);
+          border-bottom: 1px solid var(--rule);
+        }
+        .tag-list {
+          flex-direction: row;
+          gap: var(--space-1);
+          overflow-x: auto;
+          padding-bottom: 2px;
+          scrollbar-width: none;
+        }
+        .tag-list::-webkit-scrollbar { display: none; }
+        .tag-button {
+          width: auto;
+          flex: 0 0 auto;
+          min-height: 40px;
+          max-width: 220px;
+        }
+        .gallery-head {
+          width: 100%;
+        }
+        ul.list a {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 4px;
+        }
+        ul.list .date {
+          font-size: 12px;
+        }
+        .entry-tags {
+          margin-top: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site">
+      <div class="wrap">
+        <!-- Customize: your gallery name + tagline. -->
+        <h1>build-h5</h1>
+        <p>Pages generated from conversations.</p>
+      </div>
+    </header>
+
+    <main class="gallery">
+      <div class="wrap gallery-layout">
+        <aside class="tags" aria-label="标签筛选">
+          <h2>Tags</h2>
+          <div class="tag-list" id="tag-list"></div>
+        </aside>
+
+        <section class="entries" aria-live="polite">
+          <div class="gallery-head">
+            <h2 id="active-filter">全部页面</h2>
+            <span class="gallery-count" id="gallery-count"></span>
+          </div>
+          <div id="entries"></div>
+          <p class="empty" id="empty">
+            还没有页面。运行 <code>/build-h5 &lt;主题&gt;</code> 生成第一篇。
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site">
+      <div class="wrap">Built with build-h5.</div>
+    </footer>
+
+    <script>
+      const state = {
+        data: { entries: [], tags: [] },
+        activeTag: "all",
+      };
+
+      const elements = {
+        tags: document.getElementById("tag-list"),
+        entries: document.getElementById("entries"),
+        empty: document.getElementById("empty"),
+        activeFilter: document.getElementById("active-filter"),
+        count: document.getElementById("gallery-count"),
+      };
+
+      const collator = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" });
+
+      function normalizeTag(tag) {
+        return String(tag || "").trim();
+      }
+
+      function tagLabel(tag) {
+        if (typeof tag === "string") return tag;
+        return tag && tag.label ? tag.label : "";
+      }
+
+      function tagSlug(tag) {
+        if (typeof tag === "string") return tag;
+        return tag && tag.slug ? tag.slug : tagLabel(tag);
+      }
+
+      function getEntryTags(entry) {
+        return Array.isArray(entry.tags) ? entry.tags.map(normalizeTag).filter(Boolean) : [];
+      }
+
+      function getTags(data) {
+        const explicitTags = Array.isArray(data.tags) ? data.tags : [];
+        if (explicitTags.length > 0) {
+          return explicitTags
+            .map((tag) => ({
+              slug: normalizeTag(tagSlug(tag)),
+              label: normalizeTag(tagLabel(tag)),
+              count: Number(tag.count || 0),
+            }))
+            .filter((tag) => tag.slug && tag.label);
+        }
+
+        const counts = new Map();
+        for (const entry of data.entries || []) {
+          for (const tag of getEntryTags(entry)) {
+            counts.set(tag, (counts.get(tag) || 0) + 1);
+          }
+        }
+        return [...counts.entries()]
+          .map(([tag, count]) => ({ slug: tag, label: tag, count }))
+          .sort((a, b) => collator.compare(a.label, b.label));
+      }
+
+      function getFilteredEntries() {
+        const entries = Array.isArray(state.data.entries) ? state.data.entries : [];
+        const filtered = state.activeTag === "all"
+          ? entries
+          : entries.filter((entry) => getEntryTags(entry).includes(state.activeTag));
+
+        return filtered.slice().sort((a, b) => {
+          const byDate = String(b.date || "").localeCompare(String(a.date || ""));
+          if (byDate !== 0) return byDate;
+          return collator.compare(String(a.title || ""), String(b.title || ""));
+        });
+      }
+
+      function groupByYear(entries) {
+        return entries.reduce((groups, entry) => {
+          const year = String(entry.year || entry.date || "").slice(0, 4) || "Unknown";
+          if (!groups.has(year)) groups.set(year, []);
+          groups.get(year).push(entry);
+          return groups;
+        }, new Map());
+      }
+
+      function renderTags() {
+        const tags = getTags(state.data);
+        const total = Array.isArray(state.data.entries) ? state.data.entries.length : 0;
+        const allTags = [{ slug: "all", label: "全部", count: total }, ...tags];
+
+        elements.tags.replaceChildren(...allTags.map((tag) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "tag-button";
+          button.setAttribute("aria-pressed", String(state.activeTag === tag.slug));
+          button.dataset.tag = tag.slug;
+
+          const name = document.createElement("span");
+          name.className = "tag-name";
+          name.textContent = tag.label;
+
+          const count = document.createElement("span");
+          count.className = "tag-count";
+          count.textContent = String(tag.count);
+
+          button.append(name, count);
+          button.addEventListener("click", () => {
+            state.activeTag = tag.slug;
+            render();
+          });
+          return button;
+        }));
+      }
+
+      function renderEntries() {
+        const entries = getFilteredEntries();
+        const groups = groupByYear(entries);
+        const fragment = document.createDocumentFragment();
+
+        for (const [year, yearEntries] of groups) {
+          const section = document.createElement("section");
+          section.className = "year";
+          section.dataset.year = year;
+
+          const heading = document.createElement("h3");
+          heading.textContent = year;
+          const rule = document.createElement("span");
+          rule.className = "rule";
+          rule.setAttribute("aria-hidden", "true");
+          section.append(heading, rule);
+          fragment.append(section);
+
+          const list = document.createElement("ul");
+          list.className = "list";
+          list.dataset.year = year;
+
+          for (const entry of yearEntries) {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = entry.href || "#";
+
+            const title = document.createElement("span");
+            title.className = "title";
+            title.textContent = entry.title || "Untitled";
+
+            const date = document.createElement("span");
+            date.className = "date";
+            date.textContent = entry.date || "";
+
+            link.append(title, date);
+
+            const tags = getEntryTags(entry);
+            if (tags.length > 0) {
+              const tagWrap = document.createElement("span");
+              tagWrap.className = "entry-tags";
+              for (const tag of tags) {
+                const label = document.createElement("span");
+                label.className = "entry-tag";
+                label.textContent = `#${tag}`;
+                tagWrap.append(label);
+              }
+              link.append(tagWrap);
+            }
+
+            item.append(link);
+            list.append(item);
+          }
+          fragment.append(list);
+        }
+
+        elements.entries.replaceChildren(fragment);
+        elements.empty.hidden = entries.length > 0;
+        elements.count.textContent = `${entries.length} / ${(state.data.entries || []).length}`;
+
+        const active = getTags(state.data).find((tag) => tag.slug === state.activeTag);
+        elements.activeFilter.textContent = state.activeTag === "all"
+          ? "全部页面"
+          : `标签：${active ? active.label : state.activeTag}`;
+      }
+
+      function render() {
+        renderTags();
+        renderEntries();
+      }
+
+      async function loadGallery() {
+        try {
+          const response = await fetch("./gallery.json", { cache: "no-cache" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          state.data = await response.json();
+        } catch (error) {
+          state.data = { entries: [], tags: [] };
+          elements.empty.textContent = "无法读取 gallery.json。请确认文件存在，或通过本地静态服务/线上站点打开首页。";
+        }
+        render();
+      }
+
+      loadGallery();
+    </script>
+  </body>
+</html>
