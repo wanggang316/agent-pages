@@ -1,10 +1,10 @@
 ---
-name: build-h5
+name: agent-pages
 description: |
-  把当前会话中的主题/资料生成为一个独立可浏览的 HTML 页面（结构清晰、化繁为简、由浅入深，强调图形/表格/动效与精致的 UI/UE），落地到你的画廊仓库并自动 commit + push + 在浏览器中打开。仅当用户输入 `/build-h5 <主题或说明>` 时触发，其他自然语言关键词一律不触发。
+  把当前会话中的主题/资料生成为一个独立可浏览的 HTML 页面（结构清晰、化繁为简、由浅入深，强调图形/表格/动效与精致的 UI/UE），落地到你的画廊仓库并自动 commit + push + 在浏览器中打开。仅当用户输入 `/agent-pages <主题或说明>` 时触发，其他自然语言关键词一律不触发。
 ---
 
-# Build H5 Skill
+# Agent Pages Skill
 
 把一个主题/资料生成为一份独立 HTML 页面（适合分享、阅读、复盘），并发布到你的「画廊」仓库（你 fork 的 agent-pages 仓库，同时也是部署到 GitHub Pages 的站点）。
 
@@ -12,11 +12,11 @@ description: |
 
 ## When To Use This Skill
 
-**仅当** 用户输入以 `/build-h5` 开头的命令时触发：
+**仅当** 用户输入以 `/agent-pages` 开头的命令时触发：
 
-- `/build-h5 <主题>` — 用该主题生成 HTML 页面
-- `/build-h5 项目=react <主题>` — 显式指定项目目录（落到画廊的 `react/` 下）
-- `/build-h5 续写 <已有文件名>` — 在已有页面上迭代/补充
+- `/agent-pages <主题>` — 用该主题生成 HTML 页面
+- `/agent-pages 项目=react <主题>` — 显式指定项目目录（落到画廊的 `react/` 下）
+- `/agent-pages 续写 <已有文件名>` — 在已有页面上迭代/补充
 
 其他自然语言（"帮我做个 H5"、"生成一个网页"等）**不触发**，避免误判。
 
@@ -25,7 +25,7 @@ description: |
 所有路径来自 `install.sh` 写入的配置文件，**不要把任何仓库路径写死在脑子里**：
 
 ```bash
-. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/build-h5/config.env"
+. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
 # 得到：BUILD_H5_GALLERY_PATH / BUILD_H5_REMOTE / BUILD_H5_BRANCH /
 #       BUILD_H5_SITE_BASE_URL / BUILD_H5_GALLERY_NAME /
 #       BUILD_H5_DEFAULT_PROJECT
@@ -51,7 +51,7 @@ description: |
 然后调用脚本（它会同步仓库、用**系统时钟**取当天日期、解析并去重目标路径，输出 JSON）：
 
 ```bash
-. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/build-h5/config.env"
+. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
 PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 "$BUILD_H5_GALLERY_PATH/scripts/new-page.sh" --project "$PROJECT" --slug "<slug>"
 ```
@@ -113,7 +113,7 @@ PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 - 用逗号分隔传给 `--tags`，例如 `"React,Server Components,架构"`。
 
 ```bash
-. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/build-h5/config.env"
+. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
 "$BUILD_H5_GALLERY_PATH/scripts/publish.sh" \
   --project "<project>" \
   --file "<relPath 或 targetPath>" \
@@ -140,7 +140,7 @@ PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 
 ## 续写模式
 
-`/build-h5 续写 <已有文件名>`：
+`/agent-pages 续写 <已有文件名>`：
 
 1. 在 `$BUILD_H5_GALLERY_PATH` 下 `find` 该文件（模糊匹配 slug）。
 2. 多结果 → 列给用户选。
@@ -155,7 +155,7 @@ PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 ## 反模式 / 不要做的事
 
 - ❌ **参考画廊里 `index.html` 或任何历史页面的主题/配色/字体/版式/动效**——每次从主题出发独立设计。
-- ❌ 用户没说 `/build-h5` 就自动造页面。
+- ❌ 用户没说 `/agent-pages` 就自动造页面。
 - ❌ 素材稀薄就硬写，通篇 `<p>TODO</p>`。
 - ❌ 自作主张联网调研（必须先问授权）。
 - ❌ 套通用 "AI landing page" 模板（hero + 3 列 feature + CTA）。

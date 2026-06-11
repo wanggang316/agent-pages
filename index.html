@@ -406,7 +406,7 @@
           </div>
           <div id="entries"></div>
           <p class="empty" id="empty">
-            还没有页面。运行 <code>/build-h5 &lt;主题&gt;</code> 生成第一篇。
+            可以通过 <code>/agent-pages &lt;主题&gt;</code> Skill 生成页面。
           </p>
         </section>
       </div>
@@ -679,7 +679,11 @@
           state.data = await response.json();
         } catch (error) {
           state.data = { entries: [], tags: [] };
-          elements.empty.textContent = "无法读取 gallery.json。请确认文件存在，或通过本地静态服务/线上站点打开首页。";
+          elements.empty.replaceChildren(
+            document.createTextNode("可以通过 "),
+            Object.assign(document.createElement("code"), { textContent: "/agent-pages <主题>" }),
+            document.createTextNode(" Skill 生成页面。"),
+          );
         }
         render();
       }

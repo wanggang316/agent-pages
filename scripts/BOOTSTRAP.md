@@ -5,7 +5,7 @@ Your job: install the `agent-pages` capability for your human, then operate it r
 
 ## Goal
 
-After setup, when the human types `/build-h5 <topic>`, you turn the current
+After setup, when the human types `/agent-pages <topic>`, you turn the current
 conversation into a polished, single-file HTML page, publish it to their gallery
 repo, and push it so GitHub Pages (or any static host) serves it.
 
@@ -16,7 +16,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 
 - `index.html` — the gallery home (deployed site root; renders `gallery.json`)
 - `gallery.json` — structured page list + tags maintained by `publish.sh`
-- `skills/build-h5/SKILL.md` — the portable skill (config-driven, no hardcoded paths)
+- `skills/agent-pages/SKILL.md` — the portable skill (config-driven, no hardcoded paths)
 - `scripts/install.sh` — installs the skill + writes config (+ optional hint hook)
 - `scripts/new-page.sh` — sync repo + stamp today's date + resolve the target path → JSON
 - `scripts/publish.sh` — register in gallery.json + commit (page + home/data files) + push + open → JSON
@@ -49,13 +49,13 @@ Run from inside the gallery clone:
 ```bash
 ./scripts/install.sh                # skill + config; asks for gallery title (default: Agent <Pages/>)
 ./scripts/install.sh --name "Gump <Pages/>"   # set title non-interactively
-./scripts/install.sh --with-hook    # also add the /build-h5 hint hook to ~/.claude/settings.json
+./scripts/install.sh --with-hook    # also add the /agent-pages hint hook to ~/.claude/settings.json
 ./scripts/install.sh --site https://h5.example.com   # record a public base URL for live links
 ```
 
 This writes:
-- `~/.claude/skills/build-h5/SKILL.md`
-- `~/.claude/build-h5/config.env`
+- `~/.claude/skills/agent-pages/SKILL.md`
+- `~/.claude/agent-pages/config.env`
 - `gallery.json.site.title` in the gallery clone
 
 Tell the human to restart Claude Code (or `/reload`) so the skill is discovered.
@@ -79,8 +79,8 @@ If anything looks off (unexpected paths, destructive ops), warn the human and as
 
 ## Operating contract (after install)
 
-- Trigger ONLY on `/build-h5 …`. A bare topic or natural-language request does **not** trigger it.
-- Follow `skills/build-h5/SKILL.md`: prepare → assess material → **design from scratch** → publish → verify → report.
+- Trigger ONLY on `/agent-pages …`. A bare topic or natural-language request does **not** trigger it.
+- Follow `skills/agent-pages/SKILL.md`: prepare → assess material → **design from scratch** → publish → verify → report.
 - Never reuse an existing page's design. Never use an LLM-remembered date — use the date `new-page.sh` returns.
 - Never `git add -A` in the gallery — let `publish.sh` stage only the page + `index.html` + `gallery.json`.
 

@@ -4,11 +4,11 @@ set -euo pipefail
 # install.sh — make this machine capable of agent-pages.
 #
 # What it does (idempotent, local-only — never pushes):
-#   1. installs the skill        -> ~/.claude/skills/build-h5/SKILL.md
-#   2. writes your config        -> ~/.claude/build-h5/config.env
+#   1. installs the skill        -> ~/.claude/skills/agent-pages/SKILL.md
+#   2. writes your config        -> ~/.claude/agent-pages/config.env
 #      (gallery path = this repo clone, remote/branch = this repo's origin)
 #   3. (optional) installs the   -> ~/.claude/settings.json
-#      "/build-h5" hint hook       UserPromptSubmit
+#      "/agent-pages" hint hook       UserPromptSubmit
 #
 # Run it from inside your gallery clone (the fork of this repo):
 #   ./scripts/install.sh [--gallery PATH] [--site URL] [--name "Agent <Pages/>"] [--with-hook] [--force]
@@ -17,8 +17,8 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(git -C "$here" rev-parse --show-toplevel 2>/dev/null || dirname "$here")"
 
 claude_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-skills_dst="$claude_dir/skills/build-h5"
-cfg_dir="$claude_dir/build-h5"
+skills_dst="$claude_dir/skills/agent-pages"
+cfg_dir="$claude_dir/agent-pages"
 cfg_file="$cfg_dir/config.env"
 settings_file="$claude_dir/settings.json"
 
@@ -55,7 +55,7 @@ fi
 
 # --- 1. skill ---
 mkdir -p "$skills_dst"
-cp "$repo_root/skills/build-h5/SKILL.md" "$skills_dst/SKILL.md"
+cp "$repo_root/skills/agent-pages/SKILL.md" "$skills_dst/SKILL.md"
 say "skill   -> $skills_dst/SKILL.md"
 
 # --- 2. config ---
@@ -102,7 +102,7 @@ PY
 fi
 
 # --- 3. optional hint hook ---
-hint_cmd='cat >/dev/null 2>&1; printf '"'"'%s'"'"' '"'"'{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"当用户请求详细的设计方案 / 技术方案 / 架构设计，且你打算输出较长篇幅的文字方案时：先用一两句话提示可用 `/build-h5 <主题>` 把方案生成为结构清晰、由浅入深、带图形/表格/动效的独立 HTML 页面，并询问是否采用；除非用户明确要求纯文字，否则优先建议 /build-h5。"}}'"'"''
+hint_cmd='cat >/dev/null 2>&1; printf '"'"'%s'"'"' '"'"'{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"当用户请求详细的设计方案 / 技术方案 / 架构设计，且你打算输出较长篇幅的文字方案时：先用一两句话提示可用 `/agent-pages <主题>` 把方案生成为结构清晰、由浅入深、带图形/表格/动效的独立 HTML 页面，并询问是否采用；除非用户明确要求纯文字，否则优先建议 /agent-pages。"}}'"'"''
 
 if [ "$with_hook" -eq 1 ]; then
   if command -v python3 >/dev/null 2>&1; then
@@ -116,12 +116,12 @@ if os.path.exists(path):
         except Exception: data = {}
 hooks = data.setdefault("hooks", {}).setdefault("UserPromptSubmit", [])
 exists = any(
-    h.get("type") == "command" and "/build-h5" in h.get("command", "") and "additionalContext" in h.get("command", "")
+    h.get("type") == "command" and "/agent-pages" in h.get("command", "") and "additionalContext" in h.get("command", "")
     for grp in hooks for h in grp.get("hooks", [])
 )
 if not exists:
     hooks.append({"hooks": [{"type": "command", "command": cmd, "timeout": 5,
-                             "statusMessage": "Inject /build-h5 design hint"}]})
+                             "statusMessage": "Inject /agent-pages design hint"}]})
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
@@ -130,10 +130,10 @@ else:
     print("  hook    -> %s (already present)" % path)
 PY
   else
-    say "hook    -> python3 not found; add the snippet from hooks/build-h5-hint.json to $settings_file manually"
+    say "hook    -> python3 not found; add the snippet from hooks/agent-pages-hint.json to $settings_file manually"
   fi
 else
-  say "hook    -> skipped (re-run with --with-hook to install the /build-h5 hint)"
+  say "hook    -> skipped (re-run with --with-hook to install the /agent-pages hint)"
 fi
 
 cat <<EOF
@@ -142,5 +142,5 @@ Done. Next:
   - Restart Claude Code (or /reload) so it picks up the skill.
   - Enable GitHub Pages on your fork (Settings > Pages > deploy from $branch).
   - Optionally set a domain: cp CNAME.example CNAME && edit it.
-  - Try it:  /build-h5 <topic>
+  - Try it:  /agent-pages <topic>
 EOF

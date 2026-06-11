@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 #
-# publish.sh — close the loop for a build-h5 page.
+# publish.sh — close the loop for an agent-pages page.
 #
 # Deterministic finish: register the page in gallery.json, commit ONLY the page
 # + gallery home/data files, push (with a rebase retry), and open the page

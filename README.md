@@ -1,7 +1,7 @@
 # agent-pages
 
 **agent-pages** turns a conversation into a polished, single-file HTML page and
-publishes it to your own gallery — one command: `/build-h5 <topic>`.
+publishes it to your own gallery — one command: `/agent-pages <topic>`.
 
 It is a small, installable capability you add to a coding assistant (Claude Code
 first). This repo is **both** the capability (skill + scripts + bootstrap) **and**
@@ -12,7 +12,7 @@ and GitHub Pages (or any static host) serves them.
 
 ## What you get
 
-After setup, typing `/build-h5 <topic>` makes the assistant:
+After setup, typing `/agent-pages <topic>` makes the assistant:
 
 1. sync your gallery repo and stamp today's date (from the system clock)
 2. design a page **from scratch** for that topic — structure, graphics, tables, motion, responsive UI
@@ -41,9 +41,9 @@ Or do it yourself in one line from inside your gallery clone:
 ./scripts/install.sh --name "Gump <Pages/>"   # non-interactive title
 ```
 
-This installs the skill to `~/.claude/skills/build-h5/` and writes your config to
-`~/.claude/build-h5/config.env`. Restart Claude Code (or `/reload`) and try
-`/build-h5 <topic>`.
+This installs the skill to `~/.claude/skills/agent-pages/` and writes your config to
+`~/.claude/agent-pages/config.env`. Restart Claude Code (or `/reload`) and try
+`/agent-pages <topic>`.
 
 ---
 
@@ -55,12 +55,12 @@ your fork of this repo  =  your gallery  =  the deployed site
 ├── gallery.json                ← structured page list + tags for agents
 ├── <project>/                   ← one folder per project
 │   └── 20260604-<slug>.html     ← generated pages
-├── skills/build-h5/SKILL.md     ← the skill (installed to ~/.claude/skills)
+├── skills/agent-pages/SKILL.md     ← the skill (installed to ~/.claude/skills)
 └── scripts/                     ← run from inside the clone
     ├── install.sh   new-page.sh   publish.sh   sync-upstream.sh
 ```
 
-Nothing is hardcoded to one user: the skill reads `~/.claude/build-h5/config.env`
+Nothing is hardcoded to one user: the skill reads `~/.claude/agent-pages/config.env`
 (`BUILD_H5_GALLERY_PATH`, `BUILD_H5_REMOTE`, `BUILD_H5_BRANCH`,
 `BUILD_H5_SITE_BASE_URL`, `BUILD_H5_GALLERY_NAME`,
 `BUILD_H5_DEFAULT_PROJECT`). See `config.example.env`.
@@ -74,11 +74,11 @@ installer writes the same value there, and the trailing token such as
 
 ## Usage
 
-- `/build-h5 <topic>` — generate a page (project = current working dir's basename)
-- `/build-h5 项目=react <topic>` — force the project folder
-- `/build-h5 续写 <filename>` — iterate on an existing page
+- `/agent-pages <topic>` — generate a page (project = current working dir's basename)
+- `/agent-pages 项目=react <topic>` — force the project folder
+- `/agent-pages 续写 <filename>` — iterate on an existing page
 
-The skill **only** triggers on `/build-h5 …`. A bare topic won't trigger it.
+The skill **only** triggers on `/agent-pages …`. A bare topic won't trigger it.
 
 Each published page gets tags in `gallery.json`. The publishing script always
 adds the project name as a tag, and agents can pass extra comma-separated tags
