@@ -1,4 +1,5 @@
 {
+  "$schema": "./gallery.schema.json",
   "version": 1,
   "site": {
     "title": "Agent <Pages/>"

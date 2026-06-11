@@ -16,6 +16,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 
 - `index.html` — the gallery home (deployed site root; renders `gallery.json`)
 - `gallery.json` — structured page list + tags maintained by `publish.sh`
+- `gallery.schema.json` — JSON contract for agents that maintain `gallery.json`
 - `skills/agent-pages/SKILL.md` — the portable skill (config-driven, no hardcoded paths)
 - `scripts/install.sh` — installs the skill + writes config (+ optional hint hook)
 - `scripts/new-page.sh` — sync repo + stamp today's date + resolve the target path → JSON
@@ -29,7 +30,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 
 - git, bash, awk (default on macOS/Linux)
 - `open` for auto-opening pages (macOS); harmless if absent
-- python3 ONLY if you want the optional `--with-hook` step
+- python3 for publishing `gallery.json`; also used by the optional `--with-hook` step
 
 ### 1) Ask the human
 

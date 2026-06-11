@@ -18,7 +18,7 @@ After setup, typing `/agent-pages <topic>` makes the assistant:
 2. design a page **from scratch** for that topic — structure, graphics, tables, motion, responsive UI
 3. write a single self-contained HTML file under `<project>/<yyyyMMdd>-<slug>.html`
 4. register it in `gallery.json` so the gallery home can render and filter it
-5. commit just those two files, push, and open the page locally
+5. commit the page plus gallery home/data files, push, and open the page locally
 
 The assistant does the creative part (page design). Scripts do the deterministic,
 error-prone part (sync, dates, paths, gallery data, commit/push).
@@ -53,6 +53,7 @@ This installs the skill to `~/.claude/skills/agent-pages/` and writes your confi
 your fork of this repo  =  your gallery  =  the deployed site
 ├── index.html                  ← gallery home (renders gallery.json)
 ├── gallery.json                ← structured page list + tags for agents
+├── gallery.schema.json         ← JSON contract for gallery data
 ├── <project>/                   ← one folder per project
 │   └── 20260604-<slug>.html     ← generated pages
 ├── skills/agent-pages/SKILL.md     ← the skill (installed to ~/.claude/skills)
@@ -61,14 +62,18 @@ your fork of this repo  =  your gallery  =  the deployed site
 ```
 
 Nothing is hardcoded to one user: the skill reads `~/.claude/agent-pages/config.env`
-(`BUILD_H5_GALLERY_PATH`, `BUILD_H5_REMOTE`, `BUILD_H5_BRANCH`,
-`BUILD_H5_SITE_BASE_URL`, `BUILD_H5_GALLERY_NAME`,
-`BUILD_H5_DEFAULT_PROJECT`). See `config.example.env`.
+(`AGENT_PAGES_GALLERY_PATH`, `AGENT_PAGES_REMOTE`, `AGENT_PAGES_BRANCH`,
+`AGENT_PAGES_SITE_BASE_URL`, `AGENT_PAGES_GALLERY_NAME`,
+`AGENT_PAGES_DEFAULT_PROJECT`). See `config.example.env`.
 
 The gallery home reads its display title from `gallery.json.site.title`. The
 installer writes the same value there, and the trailing token such as
 `<Pages/>` is rendered with the gradient monospace style used by the upstream
 `<HTML />` mark.
+
+`gallery.schema.json` defines the data contract for agents that maintain
+`gallery.json`: `site` stores gallery metadata, `entries` stores pages, and
+`tags` stores the derived filter list rendered by the home page.
 
 ---
 

@@ -33,18 +33,18 @@ while [ $# -gt 0 ]; do
     --no-index) do_index=0; shift ;;
     --no-push)  do_push=0; shift ;;
     --no-open)  do_open=0; shift ;;
-    *) bh5_die "unknown argument: $1" ;;
+    *) ap_die "unknown argument: $1" ;;
   esac
 done
 
-[ -n "$project" ] || bh5_die "--project is required"
-[ -n "$file" ]    || bh5_die "--file is required"
-[ -n "$title" ]   || bh5_die "--title is required (human-readable, for the index)"
-[ -n "$date" ]    || bh5_die "--date is required (YYYY-MM-DD)"
-case "$date" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) bh5_die "--date must be YYYY-MM-DD" ;; esac
+[ -n "$project" ] || ap_die "--project is required"
+[ -n "$file" ]    || ap_die "--file is required"
+[ -n "$title" ]   || ap_die "--title is required (human-readable, for the index)"
+[ -n "$date" ]    || ap_die "--date is required (YYYY-MM-DD)"
+case "$date" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) ap_die "--date must be YYYY-MM-DD" ;; esac
 
-bh5_require_gallery
-gallery="$BUILD_H5_GALLERY_PATH"
+ap_require_gallery
+gallery="$AGENT_PAGES_GALLERY_PATH"
 index="$gallery/index.html"
 gallery_json="$gallery/gallery.json"
 
@@ -53,11 +53,11 @@ case "$file" in
   /*) abs="$file" ;;
   *)  if [ -e "$gallery/$file" ]; then abs="$gallery/$file"; else abs="$PWD/$file"; fi ;;
 esac
-[ -e "$abs" ] || bh5_die "page file not found: $file"
+[ -e "$abs" ] || ap_die "page file not found: $file"
 abs="$(cd "$(dirname "$abs")" && pwd)/$(basename "$abs")"
 case "$abs" in
   "$gallery"/*) rel="${abs#"$gallery"/}" ;;
-  *) bh5_die "page is outside the gallery: $abs" ;;
+  *) ap_die "page is outside the gallery: $abs" ;;
 esac
 href="./$rel"
 fname="$(basename "$abs")"
@@ -67,7 +67,7 @@ year="${date%%-*}"
 # --- update structured gallery data ---
 index_status="skipped"
 if [ "$do_index" -eq 1 ]; then
-  command -v python3 >/dev/null 2>&1 || bh5_die "python3 is required to update gallery.json"
+  command -v python3 >/dev/null 2>&1 || ap_die "python3 is required to update gallery.json"
   index_status="$(
     python3 - "$gallery_json" "$href" "$title" "$date" "$year" "$project" "$slug" "$tags" <<'PY'
 import json
@@ -92,7 +92,7 @@ def unique(values):
 
 def read_data(path):
     if not os.path.exists(path):
-        return {"version": 1, "updatedAt": "", "tags": [], "entries": []}
+        return {"$schema": "./gallery.schema.json", "version": 1, "updatedAt": "", "tags": [], "entries": []}
     with open(path, "r", encoding="utf-8") as fh:
         try:
             data = json.load(fh)
@@ -101,6 +101,7 @@ def read_data(path):
     if not isinstance(data, dict):
         raise SystemExit("gallery.json must contain a JSON object")
     data.setdefault("version", 1)
+    data.setdefault("$schema", "./gallery.schema.json")
     data.setdefault("updatedAt", "")
     data.setdefault("tags", [])
     data.setdefault("entries", [])
@@ -172,10 +173,10 @@ sha="$(git -C "$gallery" rev-parse --short HEAD 2>/dev/null || echo "")"
 # --- push with a single rebase retry ---
 push_status="skipped"
 if [ "$do_push" -eq 1 ] && [ "$commit_status" = "committed" ]; then
-  if git -C "$gallery" push -q origin "$BUILD_H5_BRANCH" 2>/dev/null; then
+  if git -C "$gallery" push -q origin "$AGENT_PAGES_BRANCH" 2>/dev/null; then
     push_status="pushed"
-  elif git -C "$gallery" pull --rebase -q origin "$BUILD_H5_BRANCH" 2>/dev/null \
-       && git -C "$gallery" push -q origin "$BUILD_H5_BRANCH" 2>/dev/null; then
+  elif git -C "$gallery" pull --rebase -q origin "$AGENT_PAGES_BRANCH" 2>/dev/null \
+       && git -C "$gallery" push -q origin "$AGENT_PAGES_BRANCH" 2>/dev/null; then
     push_status="pushed-after-rebase"
   else
     push_status="push-failed"
@@ -189,11 +190,11 @@ fi
 
 # --- report ---
 live_url=""
-if [ -n "$BUILD_H5_SITE_BASE_URL" ]; then
-  live_url="${BUILD_H5_SITE_BASE_URL%/}/${rel}"
+if [ -n "$AGENT_PAGES_SITE_BASE_URL" ]; then
+  live_url="${AGENT_PAGES_SITE_BASE_URL%/}/${rel}"
 fi
 printf '{"relPath":"%s","fileUrl":"file://%s","liveUrl":"%s","commit":"%s","commitStatus":"%s","indexStatus":"%s","pushStatus":"%s"}\n' \
-  "$(bh5_json_escape "$href")" \
-  "$(bh5_json_escape "$abs")" \
-  "$(bh5_json_escape "$live_url")" \
+  "$(ap_json_escape "$href")" \
+  "$(ap_json_escape "$abs")" \
+  "$(ap_json_escape "$live_url")" \
   "$sha" "$commit_status" "$index_status" "$push_status"

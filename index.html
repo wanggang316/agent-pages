@@ -327,7 +327,6 @@
       }
       footer.global .meta {
         color: var(--text-3);
-        margin-left: auto;
       }
 
       @media (max-width: 760px) {
@@ -414,7 +413,6 @@
 
     <footer class="global">
       <div class="inner">
-        <span id="footer-title" hidden></span>
         <span class="meta">
           Built with
           <a href="https://github.com/wanggang316/agent-pages" target="_blank" rel="noopener">agent-pages</a>
@@ -438,7 +436,6 @@
         activeFilter: document.getElementById("active-filter"),
         count: document.getElementById("gallery-count"),
         siteTitle: document.getElementById("site-title"),
-        footerTitle: document.getElementById("footer-title"),
       };
 
       const collator = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" });
@@ -595,8 +592,6 @@
 
         elements.siteTitle.replaceChildren(...children);
         elements.siteTitle.setAttribute("aria-label", title);
-        elements.footerTitle.textContent = "";
-        elements.footerTitle.hidden = true;
         document.title = title;
       }
 

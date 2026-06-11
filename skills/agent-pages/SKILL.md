@@ -26,15 +26,16 @@ description: |
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-# 得到：BUILD_H5_GALLERY_PATH / BUILD_H5_REMOTE / BUILD_H5_BRANCH /
-#       BUILD_H5_SITE_BASE_URL / BUILD_H5_GALLERY_NAME /
-#       BUILD_H5_DEFAULT_PROJECT
+# 得到：AGENT_PAGES_GALLERY_PATH / AGENT_PAGES_REMOTE / AGENT_PAGES_BRANCH /
+#       AGENT_PAGES_SITE_BASE_URL / AGENT_PAGES_GALLERY_NAME /
+#       AGENT_PAGES_DEFAULT_PROJECT
 ```
 
-- 画廊根目录 = `$BUILD_H5_GALLERY_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
-- 脚本就在画廊里：`$BUILD_H5_GALLERY_PATH/scripts/`
+- 画廊根目录 = `$AGENT_PAGES_GALLERY_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
+- 脚本就在画廊里：`$AGENT_PAGES_GALLERY_PATH/scripts/`
 - 若配置文件不存在 → 说明尚未安装，提示用户在画廊 clone 里运行 `./scripts/install.sh`，先不要硬造路径。
 - 首页标题来自 `gallery.json.site.title`，安装时默认 `Agent <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
+- `gallery.schema.json` 是 `gallery.json` 的结构契约；手动维护时不要偏离其中的字段。
 
 目录结构：两级 —— `<项目>/<yyyyMMdd>-<slug>.html`，例如 `react/20260604-server-components.html`。
 
@@ -45,15 +46,15 @@ description: |
 解析命令意图：
 
 1. **主题**（topic）：命令未给则从会话上下文归纳，并向用户确认一次。
-2. **项目**（project）：显式 `项目=xxx` 优先；否则取 **触发时刻 Claude Code 工作目录的 basename**；`$BUILD_H5_DEFAULT_PROJECT` 非空时用它。
+2. **项目**（project）：显式 `项目=xxx` 优先；否则取 **触发时刻 Claude Code 工作目录的 basename**；`$AGENT_PAGES_DEFAULT_PROJECT` 非空时用它。
 3. **slug**：从主题提炼，kebab-case、英文为主、简短可识别。
 
 然后调用脚本（它会同步仓库、用**系统时钟**取当天日期、解析并去重目标路径，输出 JSON）：
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
-"$BUILD_H5_GALLERY_PATH/scripts/new-page.sh" --project "$PROJECT" --slug "<slug>"
+PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
+"$AGENT_PAGES_GALLERY_PATH/scripts/new-page.sh" --project "$PROJECT" --slug "<slug>"
 ```
 
 从返回 JSON 读取 `targetPath` / `relPath` / `dateHuman` / `isNewProject`。
@@ -114,7 +115,7 @@ PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-"$BUILD_H5_GALLERY_PATH/scripts/publish.sh" \
+"$AGENT_PAGES_GALLERY_PATH/scripts/publish.sh" \
   --project "<project>" \
   --file "<relPath 或 targetPath>" \
   --title "<人读得懂的中文/英文标题>" \
@@ -132,7 +133,7 @@ PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 
 给用户简短反馈：
 
-- 本地路径（`file://...` 形式）+ `liveUrl`（若配置了 `BUILD_H5_SITE_BASE_URL`）
+- 本地路径（`file://...` 形式）+ `liveUrl`（若配置了 `AGENT_PAGES_SITE_BASE_URL`）
 - "已登记到 gallery.json，可在首页按标签筛选"
 - commit SHA
 - 页面亮点 1-2 条（用了什么图示/动效）
@@ -142,12 +143,12 @@ PROJECT="${PROJECT:-${BUILD_H5_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 
 `/agent-pages 续写 <已有文件名>`：
 
-1. 在 `$BUILD_H5_GALLERY_PATH` 下 `find` 该文件（模糊匹配 slug）。
+1. 在 `$AGENT_PAGES_GALLERY_PATH` 下 `find` 该文件（模糊匹配 slug）。
 2. 多结果 → 列给用户选。
 3. `Read` 原文，用 `Edit` 增量修改；保持原页面设计语言（配色/字体/间距 token），不要风格漂移。
 4. 重新发布时加 `--no-index`（续写通常不新增索引条目）：
    ```bash
-   "$BUILD_H5_GALLERY_PATH/scripts/publish.sh" --project "<p>" --file "<file>" \
+   "$AGENT_PAGES_GALLERY_PATH/scripts/publish.sh" --project "<p>" --file "<file>" \
      --title "<title>" --date "<原日期>" --no-index --message "feat(<p>): update <slug> - <what changed>"
    ```
    `publish.sh --no-index` 不会修改 `gallery.json`。若续写改了页面标题或标签，保留 `--no-index` 完成页面更新后，再手动维护 `gallery.json` 中对应条目的 `title` / `tags`。
