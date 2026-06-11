@@ -3,8 +3,7 @@
 #
 # Resolution order for the gallery path:
 #   1. BUILD_H5_GALLERY_PATH from ~/.claude/agent-pages/config.env (written by install.sh)
-#   2. legacy fallback: ~/.claude/build-h5/config.env
-#   3. fallback: the git toplevel of the directory containing this script
+#   2. fallback: the git toplevel of the directory containing this script
 #      (works when scripts are run from inside the gallery clone, even with no config)
 
 # --- locate this script's repo, independent of the caller's cwd ---
@@ -14,13 +13,9 @@ _bh5_repo_root="$(git -C "$_bh5_lib_dir" rev-parse --show-toplevel 2>/dev/null |
 # --- load user config if present ---
 BUILD_H5_CONFIG_DIR="${BUILD_H5_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages}"
 BUILD_H5_CONFIG_FILE="${BUILD_H5_CONFIG_FILE:-$BUILD_H5_CONFIG_DIR/config.env}"
-BUILD_H5_LEGACY_CONFIG_FILE="${BUILD_H5_LEGACY_CONFIG_FILE:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/build-h5/config.env}"
 if [ -f "$BUILD_H5_CONFIG_FILE" ]; then
   # shellcheck disable=SC1090
   . "$BUILD_H5_CONFIG_FILE"
-elif [ -f "$BUILD_H5_LEGACY_CONFIG_FILE" ]; then
-  # shellcheck disable=SC1090
-  . "$BUILD_H5_LEGACY_CONFIG_FILE"
 fi
 
 # --- defaults ---
