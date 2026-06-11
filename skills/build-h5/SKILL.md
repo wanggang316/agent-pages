@@ -6,7 +6,7 @@ description: |
 
 # Build H5 Skill
 
-把一个主题/资料生成为一份独立 HTML 页面（适合分享、阅读、复盘），并发布到你的「画廊」仓库（你 fork 的 build-h5 仓库，同时也是部署到 GitHub Pages 的站点）。
+把一个主题/资料生成为一份独立 HTML 页面（适合分享、阅读、复盘），并发布到你的「画廊」仓库（你 fork 的 agent-pages 仓库，同时也是部署到 GitHub Pages 的站点）。
 
 执行链路：`new-page.sh`（同步 + 算路径）→ 评估素材 → 从零设计并写出 HTML → `publish.sh`（登记 `gallery.json` + commit + push + 打开）。脚本负责确定性的脏活，**页面设计这件创造性的事由你来做**。
 
@@ -34,7 +34,7 @@ description: |
 - 画廊根目录 = `$BUILD_H5_GALLERY_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
 - 脚本就在画廊里：`$BUILD_H5_GALLERY_PATH/scripts/`
 - 若配置文件不存在 → 说明尚未安装，提示用户在画廊 clone 里运行 `./scripts/install.sh`，先不要硬造路径。
-- 首页标题来自 `gallery.json.site.title`，安装时默认 `HTML <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
+- 首页标题来自 `gallery.json.site.title`，安装时默认 `agent-pages <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
 
 目录结构：两级 —— `<项目>/<yyyyMMdd>-<slug>.html`，例如 `react/20260604-server-components.html`。
 

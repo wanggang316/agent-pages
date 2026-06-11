@@ -1,8 +1,7 @@
 {
   "version": 1,
   "site": {
-    "title": "HTML <Pages/>",
-    "description": "Pages generated from conversations."
+    "title": "agent-pages <Pages/>"
   },
   "updatedAt": "",
   "tags": [],

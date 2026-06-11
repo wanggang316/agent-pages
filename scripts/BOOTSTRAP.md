@@ -1,7 +1,7 @@
-# build-h5 bootstrap (FOR THE ASSISTANT)
+# agent-pages bootstrap (FOR THE ASSISTANT)
 
 This document is written for an **AI coding assistant** (e.g. Claude Code).
-Your job: install the `build-h5` capability for your human, then operate it reliably.
+Your job: install the `agent-pages` capability for your human, then operate it reliably.
 
 ## Goal
 
@@ -47,7 +47,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 Run from inside the gallery clone:
 
 ```bash
-./scripts/install.sh                # skill + config; asks for gallery title (default: HTML <Pages/>)
+./scripts/install.sh                # skill + config; asks for gallery title (default: agent-pages <Pages/>)
 ./scripts/install.sh --name "Gump <Pages/>"   # set title non-interactively
 ./scripts/install.sh --with-hook    # also add the /build-h5 hint hook to ~/.claude/settings.json
 ./scripts/install.sh --site https://h5.example.com   # record a public base URL for live links

@@ -1,6 +1,6 @@
-# build-h5
+# agent-pages
 
-**build-h5** turns a conversation into a polished, single-file HTML page and
+**agent-pages** turns a conversation into a polished, single-file HTML page and
 publishes it to your own gallery — one command: `/build-h5 <topic>`.
 
 It is a small, installable capability you add to a coding assistant (Claude Code
@@ -30,14 +30,14 @@ error-prone part (sync, dates, paths, gallery data, commit/push).
 Send this to your assistant (copy/paste), pointing at your fork of this repo:
 
 ```text
-Help me install and deploy build-h5: <your-fork-url>
+Help me install and deploy agent-pages: <your-fork-url>
 Follow scripts/BOOTSTRAP.md.
 ```
 
 Or do it yourself in one line from inside your gallery clone:
 
 ```bash
-./scripts/install.sh            # asks for the gallery title; default: HTML <Pages/>
+./scripts/install.sh            # asks for the gallery title; default: agent-pages <Pages/>
 ./scripts/install.sh --name "Gump <Pages/>"   # non-interactive title
 ```
 

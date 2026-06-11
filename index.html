@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <!-- Customize gallery metadata in gallery.json. -->
-    <title>HTML &lt;Pages/&gt;</title>
-    <meta name="description" content="Pages generated from conversations by build-h5." />
+    <title>agent-pages &lt;Pages/&gt;</title>
+    <meta name="description" content="agent-pages gallery." />
     <link rel="icon" href="data:," />
     <style>
       :root {
@@ -124,20 +124,6 @@
         -webkit-text-fill-color: var(--text-3);
         font-weight: 400;
       }
-      nav.global .links {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        min-width: 0;
-      }
-      .nav-description {
-        color: var(--text-3);
-        font-size: 13px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
       main.gallery { flex: 1; padding: var(--space-4) 0 var(--space-5); }
       .gallery-layout {
         display: grid;
@@ -347,7 +333,6 @@
         .wrap { padding: 0 var(--space-2); }
         nav.global .inner { padding: 0 var(--space-2); }
         nav.global .brand { font-size: 15px; }
-        nav.global .links { display: none; }
         .brand .html { font-size: 14px; }
         .gallery-layout {
           display: flex;
@@ -393,16 +378,13 @@
   <body>
     <nav class="global">
       <div class="inner">
-        <a class="brand" id="site-title" href="/" aria-label="HTML <Pages/>">
-          <span>HTML</span>
+        <a class="brand" id="site-title" href="/" aria-label="agent-pages <Pages/>">
+          <span>agent-pages</span>
           <span class="sep" aria-hidden="true">·</span>
           <span class="html" aria-hidden="true">
             <span class="bracket">&lt;</span>Pages<span class="bracket">/&gt;</span>
           </span>
         </a>
-        <div class="links">
-          <span class="nav-description" id="site-description">Pages generated from conversations.</span>
-        </div>
       </div>
     </nav>
 
@@ -431,10 +413,10 @@
 
     <footer class="global">
       <div class="inner">
-        <span id="footer-title">© 2026 HTML &lt;Pages/&gt;</span>
+        <span id="footer-title">© 2026 agent-pages &lt;Pages/&gt;</span>
         <span class="meta">
           Built with
-          <a href="https://github.com/wanggang316/html-response" target="_blank" rel="noopener">build-h5</a>
+          <a href="https://github.com/wanggang316/html-response" target="_blank" rel="noopener">agent-pages</a>
         </span>
       </div>
     </footer>
@@ -455,7 +437,6 @@
         activeFilter: document.getElementById("active-filter"),
         count: document.getElementById("gallery-count"),
         siteTitle: document.getElementById("site-title"),
-        siteDescription: document.getElementById("site-description"),
         footerTitle: document.getElementById("footer-title"),
       };
 
@@ -567,10 +548,10 @@
       }
 
       function splitSiteTitle(title) {
-        const value = normalizeTag(title) || "HTML <Pages/>";
+        const value = normalizeTag(title) || "agent-pages <Pages/>";
         const codeStart = value.lastIndexOf("<");
         if (codeStart < 0 || !value.endsWith("/>")) return { name: value, code: "" };
-        const name = normalizeTag(value.slice(0, codeStart)) || "HTML";
+        const name = normalizeTag(value.slice(0, codeStart)) || "agent-pages";
         const code = value.slice(codeStart);
         if (code.indexOf(">") !== code.length - 1 || code.includes("</")) {
           return { name: value, code: "" };
@@ -580,8 +561,7 @@
 
       function renderSiteMeta() {
         const site = state.data && typeof state.data.site === "object" ? state.data.site : {};
-        const title = normalizeTag(site.title) || "HTML <Pages/>";
-        const description = normalizeTag(site.description) || "Pages generated from conversations.";
+        const title = normalizeTag(site.title) || "agent-pages <Pages/>";
         const parts = splitSiteTitle(title);
 
         const name = document.createElement("span");
@@ -614,7 +594,6 @@
 
         elements.siteTitle.replaceChildren(...children);
         elements.siteTitle.setAttribute("aria-label", title);
-        elements.siteDescription.textContent = description;
         elements.footerTitle.textContent = `© ${new Date().getFullYear()} ${title}`;
         document.title = title;
       }
