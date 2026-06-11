@@ -23,6 +23,7 @@
         --space-3: 24px;
         --space-4: 40px;
         --space-5: 64px;
+        --nav-h: 52px;
         --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
           "Hiragino Sans GB", "Microsoft YaHei", Roboto, Helvetica, Arial,
           sans-serif;
@@ -58,23 +59,38 @@
       .wrap { width: 100%; max-width: var(--max-w); margin: 0 auto; padding: 0 var(--space-3); }
 
       header.site {
-        padding: var(--space-5) 0 var(--space-3);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        height: var(--nav-h);
+        padding: 0;
+        background: color-mix(in srgb, var(--bg), transparent 12%);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
         border-bottom: 1px solid var(--rule);
+      }
+      header.site .wrap {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
       }
       header.site h1 {
         margin: 0;
-        font-size: 40px;
-        font-weight: 600;
+        font-size: 17px;
+        font-weight: 500;
+        line-height: 1;
       }
       .brand-title {
         display: inline-flex;
         align-items: baseline;
-        flex-wrap: wrap;
-        gap: 10px;
+        flex-wrap: nowrap;
+        gap: 6px;
       }
       .brand-code {
         font-family: var(--mono);
-        font-size: 0.82em;
+        font-size: 16px;
         font-weight: 600;
         letter-spacing: 0;
         background: linear-gradient(
@@ -89,10 +105,6 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        transition: background-position 0.6s ease;
-      }
-      .brand-title:hover .brand-code {
-        background-position: 100% 50%;
       }
       .brand-code .bracket {
         color: var(--text-3);
@@ -100,9 +112,12 @@
         font-weight: 400;
       }
       header.site p {
-        margin: var(--space-1) 0 0;
+        margin: 0;
         color: var(--text-3);
-        font-size: 15px;
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       main.gallery { flex: 1; padding: var(--space-4) 0 var(--space-5); }
@@ -115,7 +130,7 @@
 
       .tags {
         position: sticky;
-        top: var(--space-3);
+        top: calc(var(--nav-h) + var(--space-3));
         padding-right: var(--space-2);
         --tag-list-max-h: 116px;
       }
@@ -291,9 +306,10 @@
 
       @media (max-width: 760px) {
         .wrap { padding: 0 var(--space-2); }
-        header.site { padding-top: var(--space-4); }
-        header.site h1 { font-size: 32px; }
-        .brand-title { gap: 8px; }
+        header.site h1 { font-size: 15px; }
+        header.site p { display: none; }
+        .brand-title { gap: 6px; }
+        .brand-code { font-size: 14px; }
         .gallery-layout {
           display: flex;
           flex-direction: column;
