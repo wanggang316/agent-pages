@@ -33,7 +33,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 
 ### 1) Ask the human
 
-- Their gallery repo: fork `wanggang316/h5`-style, or let you fork this template? Or an existing repo?
+- Their gallery repo: fork `wanggang316/agent-pages`-style, or let you fork this template? Or an existing repo?
 - A custom domain for Pages? (optional)
 - Default target language for page copy? (default: 中文 body, English identifiers)
 

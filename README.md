@@ -30,7 +30,7 @@ error-prone part (sync, dates, paths, gallery data, commit/push).
 Send this to your assistant (copy/paste), pointing at your fork of this repo:
 
 ```text
-Help me install and deploy agent-pages: <your-fork-url>
+Help me install and deploy agent-pages: https://github.com/wanggang316/agent-pages
 Follow scripts/BOOTSTRAP.md.
 ```
 
