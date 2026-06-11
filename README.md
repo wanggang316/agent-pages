@@ -37,7 +37,8 @@ Follow scripts/BOOTSTRAP.md.
 Or do it yourself in one line from inside your gallery clone:
 
 ```bash
-./scripts/install.sh            # add --with-hook to also install the /build-h5 nudge
+./scripts/install.sh            # asks for the gallery title; default: HTML <Pages/>
+./scripts/install.sh --name "Gump <Pages/>"   # non-interactive title
 ```
 
 This installs the skill to `~/.claude/skills/build-h5/` and writes your config to
@@ -61,7 +62,13 @@ your fork of this repo  =  your gallery  =  the deployed site
 
 Nothing is hardcoded to one user: the skill reads `~/.claude/build-h5/config.env`
 (`BUILD_H5_GALLERY_PATH`, `BUILD_H5_REMOTE`, `BUILD_H5_BRANCH`,
-`BUILD_H5_SITE_BASE_URL`, `BUILD_H5_DEFAULT_PROJECT`). See `config.example.env`.
+`BUILD_H5_SITE_BASE_URL`, `BUILD_H5_GALLERY_NAME`,
+`BUILD_H5_DEFAULT_PROJECT`). See `config.example.env`.
+
+The gallery home reads its display title from `gallery.json.site.title`. The
+installer writes the same value there, and the trailing token such as
+`<Pages/>` is rendered with the gradient monospace style used by the upstream
+`<HTML />` mark.
 
 ---
 

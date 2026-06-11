@@ -47,7 +47,8 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 Run from inside the gallery clone:
 
 ```bash
-./scripts/install.sh                # skill + config (gallery = this clone, remote/branch auto-detected)
+./scripts/install.sh                # skill + config; asks for gallery title (default: HTML <Pages/>)
+./scripts/install.sh --name "Gump <Pages/>"   # set title non-interactively
 ./scripts/install.sh --with-hook    # also add the /build-h5 hint hook to ~/.claude/settings.json
 ./scripts/install.sh --site https://h5.example.com   # record a public base URL for live links
 ```
@@ -55,6 +56,7 @@ Run from inside the gallery clone:
 This writes:
 - `~/.claude/skills/build-h5/SKILL.md`
 - `~/.claude/build-h5/config.env`
+- `gallery.json.site.title` in the gallery clone
 
 Tell the human to restart Claude Code (or `/reload`) so the skill is discovered.
 

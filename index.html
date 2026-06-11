@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <!-- Customize the next two lines for your own gallery. -->
-    <title>build-h5 · Gallery</title>
+    <!-- Customize gallery metadata in gallery.json. -->
+    <title>HTML &lt;Pages/&gt;</title>
     <meta name="description" content="Pages generated from conversations by build-h5." />
     <link rel="icon" href="data:," />
     <style>
@@ -65,6 +65,39 @@
         margin: 0;
         font-size: 40px;
         font-weight: 600;
+      }
+      .brand-title {
+        display: inline-flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .brand-code {
+        font-family: var(--mono);
+        font-size: 0.82em;
+        font-weight: 600;
+        letter-spacing: 0;
+        background: linear-gradient(
+          92deg,
+          #ff6a3d 0%,
+          #ff2d55 28%,
+          #af52de 58%,
+          #007aff 100%
+        );
+        background-size: 200% 100%;
+        background-position: 0% 50%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        transition: background-position 0.6s ease;
+      }
+      .brand-title:hover .brand-code {
+        background-position: 100% 50%;
+      }
+      .brand-code .bracket {
+        color: var(--text-3);
+        -webkit-text-fill-color: var(--text-3);
+        font-weight: 400;
       }
       header.site p {
         margin: var(--space-1) 0 0;
@@ -260,6 +293,7 @@
         .wrap { padding: 0 var(--space-2); }
         header.site { padding-top: var(--space-4); }
         header.site h1 { font-size: 32px; }
+        .brand-title { gap: 8px; }
         .gallery-layout {
           display: flex;
           flex-direction: column;
@@ -301,9 +335,13 @@
   <body>
     <header class="site">
       <div class="wrap">
-        <!-- Customize: your gallery name + tagline. -->
-        <h1>build-h5</h1>
-        <p>Pages generated from conversations.</p>
+        <h1 class="brand-title" id="site-title">
+          <span>HTML</span>
+          <span class="brand-code" aria-hidden="true">
+            <span class="bracket">&lt;</span>Pages<span class="bracket">/&gt;</span>
+          </span>
+        </h1>
+        <p id="site-description">Pages generated from conversations.</p>
       </div>
     </header>
 
@@ -349,6 +387,8 @@
         empty: document.getElementById("empty"),
         activeFilter: document.getElementById("active-filter"),
         count: document.getElementById("gallery-count"),
+        siteTitle: document.getElementById("site-title"),
+        siteDescription: document.getElementById("site-description"),
       };
 
       const collator = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" });
@@ -458,6 +498,53 @@
         elements.tagPanel.dataset.expanded = wasExpanded;
       }
 
+      function splitSiteTitle(title) {
+        const value = normalizeTag(title) || "HTML <Pages/>";
+        const codeStart = value.lastIndexOf("<");
+        if (codeStart < 0 || !value.endsWith("/>")) return { name: value, code: "" };
+        const name = normalizeTag(value.slice(0, codeStart)) || "HTML";
+        const code = value.slice(codeStart);
+        if (code.indexOf(">") !== code.length - 1 || code.includes("</")) {
+          return { name: value, code: "" };
+        }
+        return { name, code };
+      }
+
+      function renderSiteMeta() {
+        const site = state.data && typeof state.data.site === "object" ? state.data.site : {};
+        const title = normalizeTag(site.title) || "HTML <Pages/>";
+        const description = normalizeTag(site.description) || "Pages generated from conversations.";
+        const parts = splitSiteTitle(title);
+
+        const name = document.createElement("span");
+        name.textContent = parts.name;
+
+        const children = [name];
+        if (parts.code) {
+          const code = document.createElement("span");
+          code.className = "brand-code";
+          code.setAttribute("aria-hidden", "true");
+          const codeText = parts.code.slice(1, -2);
+          code.replaceChildren(
+            Object.assign(document.createElement("span"), {
+              className: "bracket",
+              textContent: "<",
+            }),
+            document.createTextNode(codeText),
+            Object.assign(document.createElement("span"), {
+              className: "bracket",
+              textContent: "/>",
+            }),
+          );
+          children.push(code);
+        }
+
+        elements.siteTitle.replaceChildren(...children);
+        elements.siteTitle.setAttribute("aria-label", title);
+        elements.siteDescription.textContent = description;
+        document.title = title;
+      }
+
       function renderEntries() {
         const entries = getFilteredEntries();
         const groups = groupByYear(entries);
@@ -525,6 +612,7 @@
       }
 
       function render() {
+        renderSiteMeta();
         renderTags();
         renderEntries();
       }

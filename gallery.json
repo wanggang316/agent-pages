@@ -1,5 +1,9 @@
 {
   "version": 1,
+  "site": {
+    "title": "HTML <Pages/>",
+    "description": "Pages generated from conversations."
+  },
   "updatedAt": "",
   "tags": [],
   "entries": []
