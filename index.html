@@ -84,9 +84,10 @@
         position: sticky;
         top: var(--space-3);
         padding-right: var(--space-2);
+        --tag-list-max-h: 116px;
       }
       .tags h2 {
-        margin: 0 0 var(--space-2);
+        margin: 0 0 10px;
         color: var(--text-3);
         font-size: 12px;
         font-weight: 650;
@@ -95,25 +96,30 @@
       }
       .tag-list {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 6px;
+        max-height: none;
+        overflow: hidden;
       }
+      .tags[data-expanded="false"] .tag-list { max-height: var(--tag-list-max-h); }
       .tag-button {
-        width: 100%;
-        min-height: 36px;
-        border: 1px solid transparent;
-        border-radius: 8px;
+        min-width: 0;
+        max-width: 100%;
+        min-height: 28px;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
         background: transparent;
         color: var(--text-2);
         cursor: pointer;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: var(--space-1);
-        padding: 6px 10px;
+        justify-content: center;
+        gap: 6px;
+        padding: 3px 8px;
         font: inherit;
-        font-size: 14px;
-        text-align: left;
+        font-size: 12px;
+        line-height: 1.35;
+        text-align: center;
         transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
       }
       .tag-button:hover {
@@ -136,9 +142,22 @@
         flex: none;
         color: var(--text-3);
         font-family: var(--mono);
-        font-size: 12px;
+        font-size: 11px;
         font-variant-numeric: tabular-nums;
       }
+      .tag-toggle {
+        display: none;
+        margin-top: 10px;
+        min-height: 28px;
+        border: 0;
+        background: transparent;
+        color: var(--accent);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        padding: 0;
+      }
+      .tags[data-overflow="true"] .tag-toggle { display: inline-flex; }
 
       .gallery-head {
         display: flex;
@@ -251,23 +270,17 @@
         .tags {
           position: static;
           width: 100%;
+          --tag-list-max-h: 78px;
           padding-right: 0;
           padding-bottom: var(--space-2);
           border-bottom: 1px solid var(--rule);
         }
         .tag-list {
-          flex-direction: row;
-          gap: var(--space-1);
-          overflow-x: auto;
+          gap: 6px;
           padding-bottom: 2px;
-          scrollbar-width: none;
         }
-        .tag-list::-webkit-scrollbar { display: none; }
         .tag-button {
-          width: auto;
-          flex: 0 0 auto;
-          min-height: 40px;
-          max-width: 220px;
+          min-height: 30px;
         }
         .gallery-head {
           width: 100%;
@@ -299,6 +312,9 @@
         <aside class="tags" aria-label="标签筛选">
           <h2>Tags</h2>
           <div class="tag-list" id="tag-list"></div>
+          <button class="tag-toggle" id="tag-toggle" type="button" aria-expanded="false">
+            展开
+          </button>
         </aside>
 
         <section class="entries" aria-live="polite">
@@ -322,10 +338,13 @@
       const state = {
         data: { entries: [], tags: [] },
         activeTag: "all",
+        tagsExpanded: false,
       };
 
       const elements = {
+        tagPanel: document.querySelector(".tags"),
         tags: document.getElementById("tag-list"),
+        tagToggle: document.getElementById("tag-toggle"),
         entries: document.getElementById("entries"),
         empty: document.getElementById("empty"),
         activeFilter: document.getElementById("active-filter"),
@@ -402,6 +421,10 @@
         const total = Array.isArray(state.data.entries) ? state.data.entries.length : 0;
         const allTags = [{ slug: "all", label: "全部", count: total }, ...tags];
 
+        elements.tagPanel.dataset.expanded = String(state.tagsExpanded);
+        elements.tagToggle.textContent = state.tagsExpanded ? "收起" : "展开";
+        elements.tagToggle.setAttribute("aria-expanded", String(state.tagsExpanded));
+
         elements.tags.replaceChildren(...allTags.map((tag) => {
           const button = document.createElement("button");
           button.type = "button";
@@ -424,6 +447,15 @@
           });
           return button;
         }));
+        requestAnimationFrame(updateTagOverflow);
+      }
+
+      function updateTagOverflow() {
+        const wasExpanded = elements.tagPanel.dataset.expanded;
+        elements.tagPanel.dataset.expanded = "false";
+        const hasOverflow = elements.tags.scrollHeight > elements.tags.clientHeight + 1;
+        elements.tagPanel.dataset.overflow = String(hasOverflow);
+        elements.tagPanel.dataset.expanded = wasExpanded;
       }
 
       function renderEntries() {
@@ -508,6 +540,13 @@
         }
         render();
       }
+
+      elements.tagToggle.addEventListener("click", () => {
+        state.tagsExpanded = !state.tagsExpanded;
+        renderTags();
+      });
+
+      window.addEventListener("resize", () => requestAnimationFrame(updateTagOverflow));
 
       loadGallery();
     </script>
