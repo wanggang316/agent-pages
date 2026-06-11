@@ -37,7 +37,7 @@ Follow scripts/BOOTSTRAP.md.
 Or do it yourself in one line from inside your gallery clone:
 
 ```bash
-./scripts/install.sh            # asks for the gallery title; default: agent-pages <Pages/>
+./scripts/install.sh            # asks for the gallery title; default: Agent <Pages/>
 ./scripts/install.sh --name "Gump <Pages/>"   # non-interactive title
 ```
 

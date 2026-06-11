@@ -47,7 +47,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 Run from inside the gallery clone:
 
 ```bash
-./scripts/install.sh                # skill + config; asks for gallery title (default: agent-pages <Pages/>)
+./scripts/install.sh                # skill + config; asks for gallery title (default: Agent <Pages/>)
 ./scripts/install.sh --name "Gump <Pages/>"   # set title non-interactively
 ./scripts/install.sh --with-hook    # also add the /build-h5 hint hook to ~/.claude/settings.json
 ./scripts/install.sh --site https://h5.example.com   # record a public base URL for live links

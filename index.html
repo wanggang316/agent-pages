@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <!-- Customize gallery metadata in gallery.json. -->
-    <title>agent-pages &lt;Pages/&gt;</title>
+    <title>Agent &lt;Pages/&gt;</title>
     <meta name="description" content="agent-pages gallery." />
     <link rel="icon" href="data:," />
     <style>
@@ -317,7 +317,7 @@
         flex-wrap: wrap;
         gap: 8px 24px;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
       }
       footer.global a {
         color: var(--text-2);
@@ -327,6 +327,7 @@
       }
       footer.global .meta {
         color: var(--text-3);
+        margin-left: auto;
       }
 
       @media (max-width: 760px) {
@@ -378,8 +379,8 @@
   <body>
     <nav class="global">
       <div class="inner">
-        <a class="brand" id="site-title" href="/" aria-label="agent-pages <Pages/>">
-          <span>agent-pages</span>
+        <a class="brand" id="site-title" href="/" aria-label="Agent <Pages/>">
+          <span>Agent</span>
           <span class="sep" aria-hidden="true">·</span>
           <span class="html" aria-hidden="true">
             <span class="bracket">&lt;</span>Pages<span class="bracket">/&gt;</span>
@@ -413,7 +414,7 @@
 
     <footer class="global">
       <div class="inner">
-        <span id="footer-title">© 2026 agent-pages &lt;Pages/&gt;</span>
+        <span id="footer-title" hidden></span>
         <span class="meta">
           Built with
           <a href="https://github.com/wanggang316/html-response" target="_blank" rel="noopener">agent-pages</a>
@@ -548,10 +549,10 @@
       }
 
       function splitSiteTitle(title) {
-        const value = normalizeTag(title) || "agent-pages <Pages/>";
+        const value = normalizeTag(title) || "Agent <Pages/>";
         const codeStart = value.lastIndexOf("<");
         if (codeStart < 0 || !value.endsWith("/>")) return { name: value, code: "" };
-        const name = normalizeTag(value.slice(0, codeStart)) || "agent-pages";
+        const name = normalizeTag(value.slice(0, codeStart)) || "Agent";
         const code = value.slice(codeStart);
         if (code.indexOf(">") !== code.length - 1 || code.includes("</")) {
           return { name: value, code: "" };
@@ -561,7 +562,7 @@
 
       function renderSiteMeta() {
         const site = state.data && typeof state.data.site === "object" ? state.data.site : {};
-        const title = normalizeTag(site.title) || "agent-pages <Pages/>";
+        const title = normalizeTag(site.title) || "Agent <Pages/>";
         const parts = splitSiteTitle(title);
 
         const name = document.createElement("span");
@@ -594,7 +595,8 @@
 
         elements.siteTitle.replaceChildren(...children);
         elements.siteTitle.setAttribute("aria-label", title);
-        elements.footerTitle.textContent = `© ${new Date().getFullYear()} ${title}`;
+        elements.footerTitle.textContent = "";
+        elements.footerTitle.hidden = true;
         document.title = title;
       }
 

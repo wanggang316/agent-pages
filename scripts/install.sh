@@ -11,7 +11,7 @@ set -euo pipefail
 #      "/build-h5" hint hook       UserPromptSubmit
 #
 # Run it from inside your gallery clone (the fork of this repo):
-#   ./scripts/install.sh [--gallery PATH] [--site URL] [--name "agent-pages <Pages/>"] [--with-hook] [--force]
+#   ./scripts/install.sh [--gallery PATH] [--site URL] [--name "Agent <Pages/>"] [--with-hook] [--force]
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(git -C "$here" rev-parse --show-toplevel 2>/dev/null || dirname "$here")"
@@ -42,7 +42,7 @@ done
 say() { printf '  %s\n' "$*"; }
 echo "agent-pages install"
 
-default_gallery_name="agent-pages <Pages/>"
+default_gallery_name="Agent <Pages/>"
 if [ -z "$gallery_name" ]; then
   if [ -t 0 ]; then
     printf 'Gallery title [%s]: ' "$default_gallery_name"

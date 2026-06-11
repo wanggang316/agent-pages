@@ -22,7 +22,7 @@ fi
 : "${BUILD_H5_GALLERY_PATH:=$_bh5_repo_root}"
 : "${BUILD_H5_BRANCH:=main}"
 : "${BUILD_H5_SITE_BASE_URL:=}"
-: "${BUILD_H5_GALLERY_NAME:=agent-pages <Pages/>}"
+: "${BUILD_H5_GALLERY_NAME:=Agent <Pages/>}"
 : "${BUILD_H5_DEFAULT_PROJECT:=}"
 
 # expand a leading ~ / $HOME in the gallery path

@@ -34,7 +34,7 @@ description: |
 - 画廊根目录 = `$BUILD_H5_GALLERY_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
 - 脚本就在画廊里：`$BUILD_H5_GALLERY_PATH/scripts/`
 - 若配置文件不存在 → 说明尚未安装，提示用户在画廊 clone 里运行 `./scripts/install.sh`，先不要硬造路径。
-- 首页标题来自 `gallery.json.site.title`，安装时默认 `agent-pages <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
+- 首页标题来自 `gallery.json.site.title`，安装时默认 `Agent <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
 
 目录结构：两级 —— `<项目>/<yyyyMMdd>-<slug>.html`，例如 `react/20260604-server-components.html`。
 
