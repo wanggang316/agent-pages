@@ -83,7 +83,10 @@ installer writes the same value there, and the trailing token such as
 - `/agent-pages 项目=react <topic>` — force the project folder
 - `/agent-pages 续写 <filename>` — iterate on an existing page
 
-The skill **only** triggers on `/agent-pages …`. A bare topic won't trigger it.
+The generation workflow starts from an explicit `/agent-pages …` command. If you
+install the optional `--with-hook` hint, the assistant may recommend
+`/agent-pages <topic>` during long plan/design requests, but it should not create
+a page until you confirm or use the command.
 
 Each published page gets tags in `gallery.json`. The publishing script always
 adds the project name as a tag, and agents can pass extra comma-separated tags
