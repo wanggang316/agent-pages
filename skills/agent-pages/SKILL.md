@@ -106,6 +106,7 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
    - 暗色模式：优先 `prefers-color-scheme`；做不到也要保证日间模式精致。
 6. **可独立运行**：单文件 HTML（CSS/JS 内联或全走 CDN），双击即可打开，外链用稳定 CDN（jsDelivr/unpkg/Google Fonts）。
 7. **无障碍最低线**：语义化标签（`<header>` `<main>` `<section>` `<article>`）、对比度足够、图像有 alt。
+8. **标题克制**：HTML `<title>` 用短标题，建议中文 ≤ 18 个字、英文 ≤ 60 个字符；只写核心主题，不塞副标题、营销句、长解释或多段分隔符。
 
 代码风格：注释/class/变量名用 English，正文文案用中文（除非主题本身是英文内容），不要中英混杂的标识符，不要无意义 placeholder。
 
@@ -131,7 +132,7 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
   --tags "<tag1,tag2,tag3>"
 ```
 
-- `--title` 用页面 `<title>` 的人读标题，**不要**直接塞英文 slug。
+- `--title` 用页面 `<title>` 的人读短标题，**不要**直接塞英文 slug，也不要超过标题长度约束。
 - 从返回 JSON 读 `commit` / `liveUrl` / `pushStatus` / `indexStatus`。
 - `pushStatus=push-failed` → 告知用户远端冲突，提示手动处理，不要反复硬推。
 
