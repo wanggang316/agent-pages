@@ -132,19 +132,87 @@
         align-items: start;
       }
 
-      .tags {
+      .filters {
         position: sticky;
         top: calc(var(--nav-h) + var(--space-3));
         padding-right: var(--space-2);
-        --tag-list-max-h: 116px;
       }
-      .tags h2 {
+      .filter-section + .filter-section {
+        margin-top: var(--space-3);
+      }
+      .filters h2 {
         margin: 0 0 10px;
         color: var(--text-3);
         font-size: 12px;
         font-weight: 650;
         letter-spacing: 0.08em;
         text-transform: uppercase;
+      }
+      .groups {
+        --group-list-max-h: 150px;
+      }
+      .group-list {
+        display: grid;
+        gap: 4px;
+        max-height: none;
+        overflow: hidden;
+      }
+      .groups[data-expanded="false"] .group-list { max-height: var(--group-list-max-h); }
+      .group-button {
+        min-width: 0;
+        width: 100%;
+        min-height: 30px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-2);
+        cursor: pointer;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        font: inherit;
+        font-size: 12px;
+        line-height: 1.35;
+        text-align: left;
+      }
+      .group-button:hover {
+        background: var(--surface);
+        color: var(--text);
+      }
+      .group-button[aria-pressed="true"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .group-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .group-count {
+        color: var(--text-3);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
+      .group-toggle,
+      .tag-toggle {
+        display: none;
+        margin-top: 10px;
+        min-height: 28px;
+        border: 0;
+        background: transparent;
+        color: var(--accent);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        padding: 0;
+      }
+      .groups[data-overflow="true"] .group-toggle { display: inline-flex; }
+      .tags {
+        --tag-list-max-h: 116px;
       }
       .tag-list {
         display: flex;
@@ -196,18 +264,6 @@
         font-family: var(--mono);
         font-size: 11px;
         font-variant-numeric: tabular-nums;
-      }
-      .tag-toggle {
-        display: none;
-        margin-top: 10px;
-        min-height: 28px;
-        border: 0;
-        background: transparent;
-        color: var(--accent);
-        cursor: pointer;
-        font: inherit;
-        font-size: 12px;
-        padding: 0;
       }
       .tags[data-overflow="true"] .tag-toggle { display: inline-flex; }
 
@@ -341,14 +397,15 @@
           gap: var(--space-3);
         }
         .entries { width: 100%; }
-        .tags {
+        .filters {
           position: static;
           width: 100%;
-          --tag-list-max-h: 78px;
           padding-right: 0;
           padding-bottom: var(--space-2);
           border-bottom: 1px solid var(--rule);
         }
+        .groups { --group-list-max-h: 110px; }
+        .tags { --tag-list-max-h: 78px; }
         .tag-list {
           gap: 6px;
           padding-bottom: 2px;
@@ -390,12 +447,21 @@
 
     <main class="gallery">
       <div class="wrap gallery-layout">
-        <aside class="tags" aria-label="标签筛选">
-          <h2>Tags</h2>
-          <div class="tag-list" id="tag-list"></div>
-          <button class="tag-toggle" id="tag-toggle" type="button" aria-expanded="false">
-            展开
-          </button>
+        <aside class="filters" aria-label="筛选">
+          <section class="filter-section groups" aria-label="分组筛选">
+            <h2>Groups</h2>
+            <div class="group-list" id="group-list"></div>
+            <button class="group-toggle" id="group-toggle" type="button" aria-expanded="false">
+              展开
+            </button>
+          </section>
+          <section class="filter-section tags" aria-label="标签筛选">
+            <h2>Tags</h2>
+            <div class="tag-list" id="tag-list"></div>
+            <button class="tag-toggle" id="tag-toggle" type="button" aria-expanded="false">
+              展开
+            </button>
+          </section>
         </aside>
 
         <section class="entries" aria-live="polite">
@@ -423,11 +489,16 @@
     <script>
       const state = {
         data: { entries: [], tags: [] },
+        activeGroup: "all",
         activeTag: "all",
+        groupsExpanded: false,
         tagsExpanded: false,
       };
 
       const elements = {
+        groupPanel: document.querySelector(".groups"),
+        groups: document.getElementById("group-list"),
+        groupToggle: document.getElementById("group-toggle"),
         tagPanel: document.querySelector(".tags"),
         tags: document.getElementById("tag-list"),
         tagToggle: document.getElementById("tag-toggle"),
@@ -458,6 +529,24 @@
         return Array.isArray(entry.tags) ? entry.tags.map(normalizeTag).filter(Boolean) : [];
       }
 
+      function getEntryGroup(entry) {
+        const href = String(entry.href || "").replace(/^\.?\//, "");
+        const slash = href.lastIndexOf("/");
+        if (slash > 0) return href.slice(0, slash);
+        return normalizeTag(entry.project) || "root";
+      }
+
+      function getGroups(data) {
+        const counts = new Map();
+        for (const entry of data.entries || []) {
+          const group = getEntryGroup(entry);
+          counts.set(group, (counts.get(group) || 0) + 1);
+        }
+        return [...counts.entries()]
+          .map(([group, count]) => ({ slug: group, label: group, count }))
+          .sort((a, b) => collator.compare(a.label, b.label));
+      }
+
       function getTags(data) {
         const explicitTags = Array.isArray(data.tags) ? data.tags : [];
         if (explicitTags.length > 0) {
@@ -483,9 +572,11 @@
 
       function getFilteredEntries() {
         const entries = Array.isArray(state.data.entries) ? state.data.entries : [];
-        const filtered = state.activeTag === "all"
-          ? entries
-          : entries.filter((entry) => getEntryTags(entry).includes(state.activeTag));
+        const filtered = entries.filter((entry) => {
+          const groupMatches = state.activeGroup === "all" || getEntryGroup(entry) === state.activeGroup;
+          const tagMatches = state.activeTag === "all" || getEntryTags(entry).includes(state.activeTag);
+          return groupMatches && tagMatches;
+        });
 
         return filtered.slice().sort((a, b) => {
           const byDate = String(b.date || "").localeCompare(String(a.date || ""));
@@ -504,8 +595,13 @@
       }
 
       function renderTags() {
-        const tags = getTags(state.data);
-        const total = Array.isArray(state.data.entries) ? state.data.entries.length : 0;
+        const baseEntries = Array.isArray(state.data.entries) ? state.data.entries : [];
+        const entries = state.activeGroup === "all"
+          ? baseEntries
+          : baseEntries.filter((entry) => getEntryGroup(entry) === state.activeGroup);
+        const tagData = { ...state.data, entries };
+        const tags = getTags(tagData);
+        const total = entries.length;
         const allTags = [{ slug: "all", label: "全部", count: total }, ...tags];
 
         elements.tagPanel.dataset.expanded = String(state.tagsExpanded);
@@ -535,6 +631,49 @@
           return button;
         }));
         requestAnimationFrame(updateTagOverflow);
+      }
+
+      function renderGroups() {
+        const groups = getGroups(state.data);
+        const total = Array.isArray(state.data.entries) ? state.data.entries.length : 0;
+        const allGroups = [{ slug: "all", label: "全部", count: total }, ...groups];
+
+        elements.groupPanel.dataset.expanded = String(state.groupsExpanded);
+        elements.groupToggle.textContent = state.groupsExpanded ? "收起" : "展开";
+        elements.groupToggle.setAttribute("aria-expanded", String(state.groupsExpanded));
+
+        elements.groups.replaceChildren(...allGroups.map((group) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "group-button";
+          button.setAttribute("aria-pressed", String(state.activeGroup === group.slug));
+          button.dataset.group = group.slug;
+
+          const name = document.createElement("span");
+          name.className = "group-name";
+          name.textContent = group.label;
+
+          const count = document.createElement("span");
+          count.className = "group-count";
+          count.textContent = String(group.count);
+
+          button.append(name, count);
+          button.addEventListener("click", () => {
+            state.activeGroup = group.slug;
+            state.activeTag = "all";
+            render();
+          });
+          return button;
+        }));
+        requestAnimationFrame(updateGroupOverflow);
+      }
+
+      function updateGroupOverflow() {
+        const wasExpanded = elements.groupPanel.dataset.expanded;
+        elements.groupPanel.dataset.expanded = "false";
+        const hasOverflow = elements.groups.scrollHeight > elements.groups.clientHeight + 1;
+        elements.groupPanel.dataset.overflow = String(hasOverflow);
+        elements.groupPanel.dataset.expanded = wasExpanded;
       }
 
       function updateTagOverflow() {
@@ -656,13 +795,15 @@
         elements.count.textContent = `${entries.length} / ${(state.data.entries || []).length}`;
 
         const active = getTags(state.data).find((tag) => tag.slug === state.activeTag);
-        elements.activeFilter.textContent = state.activeTag === "all"
-          ? "全部页面"
-          : `标签：${active ? active.label : state.activeTag}`;
+        const activeGroup = getGroups(state.data).find((group) => group.slug === state.activeGroup);
+        const groupLabel = state.activeGroup === "all" ? "全部分组" : `分组：${activeGroup ? activeGroup.label : state.activeGroup}`;
+        const tagLabel = state.activeTag === "all" ? "" : ` / 标签：${active ? active.label : state.activeTag}`;
+        elements.activeFilter.textContent = `${groupLabel}${tagLabel}`;
       }
 
       function render() {
         renderSiteMeta();
+        renderGroups();
         renderTags();
         renderEntries();
       }
@@ -683,12 +824,20 @@
         render();
       }
 
+      elements.groupToggle.addEventListener("click", () => {
+        state.groupsExpanded = !state.groupsExpanded;
+        renderGroups();
+      });
+
       elements.tagToggle.addEventListener("click", () => {
         state.tagsExpanded = !state.tagsExpanded;
         renderTags();
       });
 
-      window.addEventListener("resize", () => requestAnimationFrame(updateTagOverflow));
+      window.addEventListener("resize", () => {
+        requestAnimationFrame(updateGroupOverflow);
+        requestAnimationFrame(updateTagOverflow);
+      });
 
       loadGallery();
     </script>

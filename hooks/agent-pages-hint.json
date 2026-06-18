@@ -1,12 +1,12 @@
 {
-  "_comment": "Optional. Nudges the assistant to offer /agent-pages when it is about to dump a long textual design/plan. Merge this into the UserPromptSubmit array of ~/.claude/settings.json, or run scripts/install.sh --with-hook to do it for you.",
+  "_comment": "Optional. Nudges the assistant to offer /agent-pages when a standalone HTML artifact would be clearer than a long Markdown response. Merge this into the UserPromptSubmit array of ~/.claude/settings.json, or run scripts/install.sh --with-hook to do it for you.",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "cat >/dev/null 2>&1; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"当用户请求详细的设计方案 / 技术方案 / 架构设计，且你打算输出较长篇幅的文字方案时：先用一两句话提示可用 `/agent-pages <主题>` 把方案生成为结构清晰、由浅入深、带图形/表格/动效的独立 HTML 页面，并询问是否采用；除非用户明确要求纯文字，否则优先建议 /agent-pages。\"}}'",
+            "command": "cat >/dev/null 2>&1; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"UserPromptSubmit\", \"additionalContext\": \"When the user'\"'\"'s request would be easier to understand as a self-contained HTML artifact than as a long Markdown response, briefly offer `/agent-pages <topic>` and ask whether they want that format. Good fits include side-by-side exploration or planning, annotated code review, design systems or component variants, interactive prototypes, diagrams and research maps, slide/report-style communication, incident/status/PR write-ups, or small custom review/editing UIs. Do not suggest it for quick answers, short explanations, routine edits, or when the user clearly wants plain text.\"}}'",
             "timeout": 5,
             "statusMessage": "Inject /agent-pages design hint"
           }

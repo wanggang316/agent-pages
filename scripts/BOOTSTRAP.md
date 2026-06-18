@@ -51,6 +51,7 @@ Run from inside the gallery clone:
 ./scripts/install.sh                # skill + config; asks for gallery title (default: Agent <Pages/>)
 ./scripts/install.sh --name "Gump <Pages/>"   # set title non-interactively
 ./scripts/install.sh --with-hook    # also add the /agent-pages hint hook to ~/.claude/settings.json
+./scripts/install.sh --no-hook      # skip the hook prompt in interactive shells
 ./scripts/install.sh --site https://h5.example.com   # record a public base URL for live links
 ```
 
@@ -58,6 +59,9 @@ This writes:
 - `~/.claude/skills/agent-pages/SKILL.md`
 - `~/.claude/agent-pages/config.env`
 - `gallery.json.site.title` in the gallery clone
+
+In an interactive shell, `install.sh` asks whether to add the optional Claude Code
+hook unless `--with-hook` or `--no-hook` is passed.
 
 Tell the human to restart Claude Code (or `/reload`) so the skill is discovered.
 

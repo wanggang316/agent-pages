@@ -39,11 +39,17 @@ Or do it yourself in one line from inside your gallery clone:
 ```bash
 ./scripts/install.sh            # asks for the gallery title; default: Agent <Pages/>
 ./scripts/install.sh --name "Gump <Pages/>"   # non-interactive title
+./scripts/install.sh --with-hook              # install the optional Claude Code recommendation hook
 ```
 
 This installs the skill to `~/.claude/skills/agent-pages/` and writes your config to
 `~/.claude/agent-pages/config.env`. Restart Claude Code (or `/reload`) and try
 `/agent-pages <topic>`.
+
+In an interactive terminal, `install.sh` asks whether to add the optional Claude
+Code hook. The hook does not create pages by itself; it only suggests
+`/agent-pages <topic>` when a standalone HTML artifact would likely communicate
+better than a long Markdown answer.
 
 ---
 
@@ -90,7 +96,9 @@ a page until you confirm or use the command.
 
 Each published page gets tags in `gallery.json`. The publishing script always
 adds the project name as a tag, and agents can pass extra comma-separated tags
-with `scripts/publish.sh --tags "react,server-components"`.
+with `scripts/publish.sh --tags "react,server-components"`. The home page also
+derives a group from each page's relative HTML folder path, then lets readers
+filter by group before filtering by tag.
 
 If material is thin, the assistant asks before either researching online or
 writing a TODO-marked outline — it won't fabricate facts.

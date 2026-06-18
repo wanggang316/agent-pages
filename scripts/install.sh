@@ -11,7 +11,7 @@ set -euo pipefail
 #      "/agent-pages" hint hook       UserPromptSubmit
 #
 # Run it from inside your gallery clone (the fork of this repo):
-#   ./scripts/install.sh [--gallery PATH] [--site URL] [--name "Agent <Pages/>"] [--with-hook] [--force]
+#   ./scripts/install.sh [--gallery PATH] [--site URL] [--name "Agent <Pages/>"] [--with-hook|--no-hook] [--force]
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(git -C "$here" rev-parse --show-toplevel 2>/dev/null || dirname "$here")"
@@ -25,7 +25,7 @@ settings_file="$claude_dir/settings.json"
 gallery="$repo_root"
 site_url=""
 gallery_name=""
-with_hook=0
+with_hook=""
 force=0
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -33,6 +33,7 @@ while [ $# -gt 0 ]; do
     --site)    site_url="${2:?}"; shift 2 ;;
     --name)    gallery_name="${2:?}"; shift 2 ;;
     --with-hook) with_hook=1; shift ;;
+    --no-hook) with_hook=0; shift ;;
     --force)   force=1; shift ;;
     -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
     *) echo "install: unknown argument: $1" >&2; exit 1 ;;
@@ -50,6 +51,17 @@ if [ -z "$gallery_name" ]; then
     gallery_name="${gallery_name:-$default_gallery_name}"
   else
     gallery_name="$default_gallery_name"
+  fi
+fi
+
+if [ -z "$with_hook" ]; then
+  with_hook=0
+  if [ -t 0 ]; then
+    printf 'Install Claude Code /agent-pages recommendation hook? [y/N]: '
+    IFS= read -r hook_answer || hook_answer=""
+    case "$hook_answer" in
+      y|Y|yes|YES|Yes) with_hook=1 ;;
+    esac
   fi
 fi
 
@@ -103,32 +115,50 @@ PY
 fi
 
 # --- 3. optional hint hook ---
-hint_cmd='cat >/dev/null 2>&1; printf '"'"'%s'"'"' '"'"'{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"当用户请求详细的设计方案 / 技术方案 / 架构设计，且你打算输出较长篇幅的文字方案时：先用一两句话提示可用 `/agent-pages <主题>` 把方案生成为结构清晰、由浅入深、带图形/表格/动效的独立 HTML 页面，并询问是否采用；除非用户明确要求纯文字，否则优先建议 /agent-pages。"}}'"'"''
-
 if [ "$with_hook" -eq 1 ]; then
   if command -v python3 >/dev/null 2>&1; then
-    python3 - "$settings_file" "$hint_cmd" <<'PY'
-import json, sys, os
-path, cmd = sys.argv[1], sys.argv[2]
+    python3 - "$settings_file" <<'PY'
+import json, sys, os, shlex
+path = sys.argv[1]
+hint = (
+    "When the user's request would be easier to understand as a self-contained HTML artifact than as a long Markdown response, "
+    "briefly offer `/agent-pages <topic>` and ask whether they want that format. Good fits include side-by-side exploration or planning, "
+    "annotated code review, design systems or component variants, interactive prototypes, diagrams and research maps, slide/report-style communication, "
+    "incident/status/PR write-ups, or small custom review/editing UIs. Do not suggest it for quick answers, short explanations, routine edits, or when the user clearly wants plain text."
+)
+payload = {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": hint}}
+cmd = "cat >/dev/null 2>&1; printf '%s' " + shlex.quote(json.dumps(payload, ensure_ascii=False))
 data = {}
 if os.path.exists(path):
     with open(path) as f:
         try: data = json.load(f)
         except Exception: data = {}
 hooks = data.setdefault("hooks", {}).setdefault("UserPromptSubmit", [])
-exists = any(
-    h.get("type") == "command" and "/agent-pages" in h.get("command", "") and "additionalContext" in h.get("command", "")
-    for grp in hooks for h in grp.get("hooks", [])
+target = {"type": "command", "command": cmd, "timeout": 5,
+          "statusMessage": "Inject /agent-pages design hint"}
+existing = next(
+    (
+        h
+        for grp in hooks
+        for h in grp.get("hooks", [])
+        if h.get("type") == "command"
+        and "/agent-pages" in h.get("command", "")
+        and "additionalContext" in h.get("command", "")
+    ),
+    None,
 )
-if not exists:
-    hooks.append({"hooks": [{"type": "command", "command": cmd, "timeout": 5,
-                             "statusMessage": "Inject /agent-pages design hint"}]})
+if existing is None:
+    hooks.append({"hooks": [target]})
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     print("  hook    -> %s (UserPromptSubmit hint added)" % path)
 else:
-    print("  hook    -> %s (already present)" % path)
+    existing.update(target)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    print("  hook    -> %s (UserPromptSubmit hint updated)" % path)
 PY
   else
     say "hook    -> python3 not found; add the snippet from hooks/agent-pages-hint.json to $settings_file manually"
