@@ -80,7 +80,7 @@ If anything looks off (unexpected paths, destructive ops), warn the human and as
 
 ## Operating contract (after install)
 
-- Run the generation workflow ONLY on explicit `/agent-pages …`. The optional hook may recommend `/agent-pages` during long plan/design requests, but it must not create pages until the human confirms or explicitly uses the command.
+- Treat `/agent-pages …` as the normal entry point for the generation workflow. The optional hook may recommend `/agent-pages` during long plan/design requests; start writing and publishing a page after the human confirms that they want the page generated or uses the command directly.
 - Follow `skills/agent-pages/SKILL.md`: prepare → assess material → **design from scratch** → publish → verify → report.
 - Never reuse an existing page's design. Never use an LLM-remembered date — use the date `new-page.sh` returns.
 - Never `git add -A` in the gallery — let `publish.sh` stage only the page + `index.html` + `gallery.json`.
