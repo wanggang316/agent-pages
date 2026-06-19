@@ -42,7 +42,7 @@ case "$category" in
 esac
 
 ap_require_gallery
-gallery="$AGENT_PAGES_GALLERY_PATH"
+gallery="$AGENT_PAGES_PATH"
 
 # --- validate category against gallery.json (best-effort; needs python3) ---
 if command -v python3 >/dev/null 2>&1 && [ -f "$gallery/gallery.json" ]; then

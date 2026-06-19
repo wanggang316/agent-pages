@@ -28,12 +28,12 @@ agent-pages 作为插件安装后，其 SessionStart hook 会注入 `use-agent-p
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-# 得到：AGENT_PAGES_GALLERY_PATH / AGENT_PAGES_REMOTE / AGENT_PAGES_BRANCH /
-#       AGENT_PAGES_SITE_BASE_URL / AGENT_PAGES_GALLERY_NAME
+# 得到：AGENT_PAGES_PATH / AGENT_PAGES_REMOTE / AGENT_PAGES_BRANCH /
+#       AGENT_PAGES_SITE_BASE_URL / AGENT_PAGES_NAME
 ```
 
-- 画廊根目录 = `$AGENT_PAGES_GALLERY_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
-- 脚本就在画廊里：`$AGENT_PAGES_GALLERY_PATH/scripts/`
+- 画廊根目录 = `$AGENT_PAGES_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
+- 脚本就在画廊里：`$AGENT_PAGES_PATH/scripts/`
 - 若配置文件不存在 → 说明尚未安装，提示用户在画廊 clone 里运行 `./scripts/install.sh`，先不要硬造路径。
 - 首页标题来自 `gallery.json.site.title`，安装时默认 `Agent <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
 - `gallery.schema.json` 是 `gallery.json` 的结构契约；`gallery.json.categories` 是相对固定的分类选项，手动维护时不要偏离其中的字段。
@@ -54,7 +54,7 @@ agent-pages 作为插件安装后，其 SessionStart hook 会注入 `use-agent-p
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-"$AGENT_PAGES_GALLERY_PATH/scripts/new-page.sh" --category "<category-slug>" --slug "<slug>"
+"$AGENT_PAGES_PATH/scripts/new-page.sh" --category "<category-slug>" --slug "<slug>"
 ```
 
 从返回 JSON 读取 `targetPath` / `relPath` / `dateHuman` / `category` / `isNewCategory`。
@@ -123,7 +123,7 @@ agent-pages 作为插件安装后，其 SessionStart hook 会注入 `use-agent-p
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-"$AGENT_PAGES_GALLERY_PATH/scripts/publish.sh" \
+"$AGENT_PAGES_PATH/scripts/publish.sh" \
   --file "<relPath 或 targetPath>" \
   --title "<人读得懂的中文/英文标题>" \
   --date "<dateHuman, YYYY-MM-DD>" \
@@ -151,12 +151,12 @@ agent-pages 作为插件安装后，其 SessionStart hook 会注入 `use-agent-p
 
 `/agent-pages 续写 <已有文件名>`：
 
-1. 在 `$AGENT_PAGES_GALLERY_PATH` 下 `find` 该文件（模糊匹配 slug）。
+1. 在 `$AGENT_PAGES_PATH` 下 `find` 该文件（模糊匹配 slug）。
 2. 多结果 → 列给用户选。
 3. `Read` 原文，用 `Edit` 增量修改；保持原页面设计语言（配色/字体/间距 token），不要风格漂移。
 4. 重新发布时加 `--no-index`（续写通常不新增索引条目）：
    ```bash
-   "$AGENT_PAGES_GALLERY_PATH/scripts/publish.sh" --file "<file>" \
+   "$AGENT_PAGES_PATH/scripts/publish.sh" --file "<file>" \
      --title "<title>" --date "<原日期>" --no-index --message "feat(<category>): update <slug> - <what changed>"
    ```
    `publish.sh --no-index` 不会修改 `gallery.json`。若续写改了页面标题或标签，保留 `--no-index` 完成页面更新后，再手动维护 `gallery.json` 中对应条目的 `title` / `tags`。

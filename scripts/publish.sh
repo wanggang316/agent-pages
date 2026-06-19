@@ -46,7 +46,7 @@ done
 case "$date" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) ap_die "--date must be YYYY-MM-DD" ;; esac
 
 ap_require_gallery
-gallery="$AGENT_PAGES_GALLERY_PATH"
+gallery="$AGENT_PAGES_PATH"
 index="$gallery/index.html"
 gallery_json="$gallery/gallery.json"
 
