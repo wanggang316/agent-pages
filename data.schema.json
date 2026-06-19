@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/wanggang316/agent-pages/gallery.schema.json",
+  "$id": "https://github.com/wanggang316/agent-pages/data.schema.json",
   "title": "agent-pages gallery",
   "type": "object",
   "additionalProperties": true,

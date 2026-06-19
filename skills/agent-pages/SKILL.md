@@ -8,7 +8,7 @@ description: |
 
 把一个主题/资料生成为一份独立 HTML 页面（适合分享、阅读、复盘），并发布到你的「画廊」仓库（你 fork 的 agent-pages 仓库，同时也是部署到 GitHub Pages 的站点）。
 
-执行链路：`new-page.sh`（同步 + 算路径）→ 评估素材 → 从零设计并写出 HTML → `publish.sh`（登记 `gallery.json` + commit + push + 打开）。脚本负责确定性的脏活，**页面设计这件创造性的事由你来做**。
+执行链路：`new-page.sh`（同步 + 算路径）→ 评估素材 → 从零设计并写出 HTML → `publish.sh`（登记 `data.json` + commit + push + 打开）。脚本负责确定性的脏活，**页面设计这件创造性的事由你来做**。
 
 ## When To Use This Skill
 
@@ -33,10 +33,10 @@ description: |
 - 画廊根目录 = `$AGENT_PAGES_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
 - 脚本就在画廊里：`$AGENT_PAGES_PATH/scripts/`
 - 若配置文件不存在 → 说明尚未安装，提示用户在画廊 clone 里运行 `./scripts/install.sh`，先不要硬造路径。
-- 首页标题来自 `gallery.json.site.title`，安装时默认 `Agent <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
-- `gallery.schema.json` 是 `gallery.json` 的结构契约；`gallery.json.categories` 是相对固定的分类选项，手动维护时不要偏离其中的字段。
+- 首页标题来自 `data.json.site.title`，安装时默认 `Agent <Pages/>`；末尾形如 `<Pages/>` 的 token 会按 code/等宽风格渲染。
+- `data.schema.json` 是 `data.json` 的结构契约；`data.json.categories` 是相对固定的分类选项，手动维护时不要偏离其中的字段。
 
-目录结构：两级，**按分类组织** —— `<category>/<yyyyMMdd>-<slug>.html`，例如 `engineering/20260604-server-components.html`。`category` 必须是 `gallery.json.categories` 里的某个 `slug`。
+目录结构：两级，**按分类组织** —— `<category>/<yyyyMMdd>-<slug>.html`，例如 `engineering/20260604-server-components.html`。`category` 必须是 `data.json.categories` 里的某个 `slug`。
 
 ## 工作流
 
@@ -45,7 +45,7 @@ description: |
 解析命令意图：
 
 1. **主题**（topic）：命令未给则从会话上下文归纳，并向用户确认一次。
-2. **分类**（category）：显式 `分类=xxx` 优先；否则**从 `gallery.json.categories` 的固定分类集里挑一个最贴合主题的 `slug`**（如 engineering / product / design / research / learning / operations）；实在难归类才用 `other`，或向用户确认。
+2. **分类**（category）：显式 `分类=xxx` 优先；否则**从 `data.json.categories` 的固定分类集里挑一个最贴合主题的 `slug`**（如 engineering / product / design / research / learning / operations）；实在难归类才用 `other`，或向用户确认。
 3. **slug**：从主题提炼，kebab-case、英文为主、简短可识别。
 
 然后调用脚本（它会校验分类、同步仓库、用**系统时钟**取当天日期、解析并去重目标路径，输出 JSON）：
@@ -57,7 +57,7 @@ description: |
 
 从返回 JSON 读取 `targetPath` / `relPath` / `dateHuman` / `category` / `isNewCategory`。
 
-- `new-page.sh` 会拒绝不在 `gallery.json.categories` 里的分类；选 slug 前先读一遍该列表。
+- `new-page.sh` 会拒绝不在 `data.json.categories` 里的分类；选 slug 前先读一遍该列表。
 - `isNewCategory=true` → 告知"将新建分类目录 <category>"（首次往该分类发页面时正常）。
 - 不要自己用 LLM 记忆里的日期，一切以脚本返回的 `date`/`dateHuman` 为准。
 
@@ -109,13 +109,13 @@ description: |
 
 用 `Write` 把页面写到 Step 1 返回的 `targetPath`。
 
-### Step 4 — 发布（登记 gallery.json + commit + push + 打开）
+### Step 4 — 发布（登记 data.json + commit + push + 打开）
 
-页面写好后调用 `publish.sh`，它会：把条目登记进画廊 `gallery.json`（包含分类选项、页面列表与标签，首页从该 JSON 渲染左侧分类/标签筛选和年份列表）、**只** commit 页面 + `index.html` + `gallery.json`、push（失败自动 rebase 重试一次）、本地 `open`。
+页面写好后调用 `publish.sh`，它会：把条目登记进画廊 `data.json`（包含分类选项、页面列表与标签，首页从该 JSON 渲染左侧分类/标签筛选和年份列表）、**只** commit 页面 + `index.html` + `data.json`、push（失败自动 rebase 重试一次）、本地 `open`。
 
 发布时分类与 Step 1 一致，并补充标签：
 
-- `--category` 传 Step 1 用的同一个分类 slug（页面已落在该分类目录下；省略时 `publish.sh` 会从父目录名推断）。必须来自 `gallery.json.categories`，不确定时用 `other`，不要擅自造新分类。
+- `--category` 传 Step 1 用的同一个分类 slug（页面已落在该分类目录下；省略时 `publish.sh` 会从父目录名推断）。必须来自 `data.json.categories`，不确定时用 `other`，不要擅自造新分类。
 - 根据主题提炼 1-4 个短标签，中文/英文均可，但同一画廊内尽量保持命名一致。
 - 用逗号分隔传给 `--tags`，例如 `"React,Server Components,架构"`。
 
@@ -133,14 +133,14 @@ description: |
 - 从返回 JSON 读 `commit` / `liveUrl` / `pushStatus` / `indexStatus`。
 - `pushStatus=push-failed` → 告知用户远端冲突，提示手动处理，不要反复硬推。
 
-**校验**：发布后 `Read` 一遍画廊 `gallery.json`，确认新条目在 `entries` 顶部附近、`href` 相对路径可达、`category` 来自既有分类且与所在目录一致、`tags` 为主题标签；必要时再打开 `index.html` 确认分类和标签筛选能显示。
+**校验**：发布后 `Read` 一遍画廊 `data.json`，确认新条目在 `entries` 顶部附近、`href` 相对路径可达、`category` 来自既有分类且与所在目录一致、`tags` 为主题标签；必要时再打开 `index.html` 确认分类和标签筛选能显示。
 
 ### Step 5 — 报告
 
 给用户简短反馈：
 
 - 本地路径（`file://...` 形式）+ `liveUrl`（若配置了 `AGENT_PAGES_SITE_BASE_URL`）
-- "已登记到 gallery.json，可在首页按标签筛选"
+- "已登记到 data.json，可在首页按标签筛选"
 - commit SHA
 - 页面亮点 1-2 条（用了什么图示/动效）
 - 已知 TODO（如有）
@@ -157,7 +157,7 @@ description: |
    "$AGENT_PAGES_PATH/scripts/publish.sh" --file "<file>" \
      --title "<title>" --date "<原日期>" --no-index --message "feat(<category>): update <slug> - <what changed>"
    ```
-   `publish.sh --no-index` 不会修改 `gallery.json`。若续写改了页面标题或标签，保留 `--no-index` 完成页面更新后，再手动维护 `gallery.json` 中对应条目的 `title` / `tags`。
+   `publish.sh --no-index` 不会修改 `data.json`。若续写改了页面标题或标签，保留 `--no-index` 完成页面更新后，再手动维护 `data.json` 中对应条目的 `title` / `tags`。
 
 ## 反模式 / 不要做的事
 
@@ -170,7 +170,7 @@ description: |
 - ❌ 引入大量本地依赖文件（必须单文件 + CDN）。
 - ❌ 用 LLM 记忆里的"今天日期"（一律用 `new-page.sh` 返回的日期）。
 - ❌ 把仓库路径写死（一律读 `config.env`）。
-- ❌ 绕过 `publish.sh` 手动 `git add -A`（会带进无关改动；脚本只 add 页面 + index + gallery.json）。
+- ❌ 绕过 `publish.sh` 手动 `git add -A`（会带进无关改动；脚本只 add 页面 + index + data.json）。
 
 ## 约束优先级（继承全局）
 

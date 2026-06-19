@@ -18,7 +18,7 @@ After setup, typing `/agent-pages <topic>` makes the assistant:
 1. sync your gallery repo and stamp today's date (from the system clock)
 2. design a page **from scratch** for that topic — structure, graphics, tables, motion, responsive UI
 3. write a single self-contained HTML file under `<category>/<yyyyMMdd>-<slug>.html`
-4. register it in `gallery.json` so the gallery home can render and filter it
+4. register it in `data.json` so the gallery home can render and filter it
 5. commit the page plus gallery home/data files, push, and open the page locally
 
 The assistant does the creative part (page design). Scripts do the deterministic,
@@ -48,7 +48,7 @@ and seed the gallery title:
 ```
 
 This writes your config to `~/.claude/agent-pages/config.env` and seeds
-`gallery.json` (title + categories). It does **not** copy any skill and does
+`data.json` (title + categories). It does **not** copy any skill and does
 **not** edit `settings.json` — the capability comes from the plugin.
 
 Then install the plugin inside Claude Code (one time), pointing at the clone:
@@ -80,9 +80,9 @@ your fork of this repo  =  your gallery  =  the deployed site  =  the plugin sou
 ├── skills/
 │   ├── agent-pages/SKILL.md        ← the workflow skill (/agent-pages)
 │   └── use-agent-pages/SKILL.md    ← bootstrap meta-skill (injected each session)
-├── index.html                  ← gallery home (renders gallery.json)
-├── gallery.json                ← structured page list + tags for agents
-├── gallery.schema.json         ← JSON contract for gallery data
+├── index.html                  ← gallery home (renders data.json)
+├── data.json                   ← structured page list + tags for agents
+├── data.schema.json            ← JSON contract for gallery data
 ├── <category>/                  ← one folder per category (engineering, design, …)
 │   └── 20260604-<slug>.html     ← generated pages
 └── scripts/                     ← run from inside the clone
@@ -96,13 +96,12 @@ data and runtime config. Nothing is hardcoded to one user: the skill reads
 `AGENT_PAGES_SITE_BASE_URL`, `AGENT_PAGES_NAME`). See
 `config.example.env`.
 
-The gallery home reads its display title from `gallery.json.site.title`. The
-installer writes the same value there, and the trailing token such as
-`<Pages/>` is rendered with the gradient monospace style used by the upstream
-`<HTML />` mark.
+The gallery home reads its display title from `data.json.site.title`. The
+installer writes the same value there, and a trailing token wrapped like
+`<Pages/>` is rendered in a gradient monospace style.
 
-`gallery.schema.json` defines the data contract for agents that maintain
-`gallery.json`: `site` stores gallery metadata, `categories` stores the stable
+`data.schema.json` defines the data contract for agents that maintain
+`data.json`: `site` stores gallery metadata, `categories` stores the stable
 category options, `entries` stores pages, and `tags` stores the derived filter
 list rendered by the home page.
 
@@ -120,9 +119,9 @@ recommend `/agent-pages <topic>` during long plan/design requests, but it should
 not create a page until you confirm or use the command.
 
 Each page lives under its category folder (`<category>/<yyyyMMdd>-<slug>.html`)
-and carries that category in `gallery.json`; the home page lets readers filter by
+and carries that category in `data.json`; the home page lets readers filter by
 category first, then by tag. Categories come from the fixed
-`gallery.json.categories` set — if none fit, the assistant uses `other` or asks
+`data.json.categories` set — if none fit, the assistant uses `other` or asks
 before adding a new one. Pages also get topic tags: pass comma-separated tags with
 `scripts/publish.sh --tags "react,server-components"`.
 
@@ -161,7 +160,7 @@ commands (or `/plugin marketplace update agent-pages`).
 - git + bash + awk (default on macOS/Linux)
 - `jq` (optional) — used by the SessionStart hook to emit context JSON; falls back to awk/sed
 - `open` (macOS) to auto-open pages — optional
-- python3 — required for `publish.sh` and `install.sh` to update `gallery.json`
+- python3 — required for `publish.sh` and `install.sh` to update `data.json`
 
 ## License
 

@@ -12,22 +12,22 @@ _ap_repo_root="$(git -C "$_ap_lib_dir" rev-parse --show-toplevel 2>/dev/null || 
 
 # --- load user config if present ---
 if [ -z "${AGENT_PAGES_CONFIG_DIR:-}" ]; then
-  AGENT_PAGES_CONFIG_DIR="${BUILD_H5_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages}"
+  AGENT_PAGES_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages"
 fi
 if [ -z "${AGENT_PAGES_CONFIG_FILE:-}" ]; then
-  AGENT_PAGES_CONFIG_FILE="${BUILD_H5_CONFIG_FILE:-$AGENT_PAGES_CONFIG_DIR/config.env}"
+  AGENT_PAGES_CONFIG_FILE="$AGENT_PAGES_CONFIG_DIR/config.env"
 fi
 if [ -f "$AGENT_PAGES_CONFIG_FILE" ]; then
   # shellcheck disable=SC1090
   . "$AGENT_PAGES_CONFIG_FILE"
 fi
 
-# --- defaults, with read-only compatibility for old config files ---
-: "${AGENT_PAGES_PATH:=${BUILD_H5_GALLERY_PATH:-$_ap_repo_root}}"
-: "${AGENT_PAGES_REPO:=${BUILD_H5_REMOTE:-}}"
-: "${AGENT_PAGES_BRANCH:=${BUILD_H5_BRANCH:-main}}"
-: "${AGENT_PAGES_SITE_BASE_URL:=${BUILD_H5_SITE_BASE_URL:-}}"
-: "${AGENT_PAGES_NAME:=${BUILD_H5_GALLERY_NAME:-Agent <Pages/>}}"
+# --- defaults ---
+: "${AGENT_PAGES_PATH:=$_ap_repo_root}"
+: "${AGENT_PAGES_REPO:=}"
+: "${AGENT_PAGES_BRANCH:=main}"
+: "${AGENT_PAGES_SITE_BASE_URL:=}"
+: "${AGENT_PAGES_NAME:=Agent <Pages/>}"
 
 # expand a leading ~ / $HOME in the gallery path
 AGENT_PAGES_PATH="${AGENT_PAGES_PATH/#\~/$HOME}"

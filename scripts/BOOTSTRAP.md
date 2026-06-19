@@ -21,12 +21,12 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 - `hooks/hooks.json` + `hooks/session-start.sh` — SessionStart hook that injects the `use-agent-pages` doctrine
 - `skills/agent-pages/SKILL.md` — the workflow skill (config-driven, no hardcoded paths)
 - `skills/use-agent-pages/SKILL.md` — the bootstrap meta-skill (injected each session)
-- `index.html` — the gallery home (deployed site root; renders `gallery.json`)
-- `gallery.json` — structured category options, page list, and tags maintained by `publish.sh`
-- `gallery.schema.json` — JSON contract for agents that maintain `gallery.json`
+- `index.html` — the gallery home (deployed site root; renders `data.json`)
+- `data.json` — structured category options, page list, and tags maintained by `publish.sh`
+- `data.schema.json` — JSON contract for agents that maintain `data.json`
 - `scripts/install.sh` — writes runtime config + seeds gallery metadata (no skill copy, no settings.json edit)
 - `scripts/new-page.sh` — sync repo + stamp today's date + resolve the target path → JSON
-- `scripts/publish.sh` — register in gallery.json + commit (page + home/data files) + push + open → JSON
+- `scripts/publish.sh` — register in data.json + commit (page + home/data files) + push + open → JSON
 - `scripts/sync-upstream.sh` — pull template updates into the fork
 - `config.example.env` — config template
 
@@ -38,7 +38,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 - git, bash, awk (default on macOS/Linux)
 - `jq` (optional) for the SessionStart hook; falls back to awk/sed
 - `open` for auto-opening pages (macOS); harmless if absent
-- python3 for `publish.sh` and `install.sh` to maintain `gallery.json`
+- python3 for `publish.sh` and `install.sh` to maintain `data.json`
 
 ### 1) Ask the human
 
@@ -63,7 +63,7 @@ Run from inside the gallery clone:
 
 This writes:
 - `~/.claude/agent-pages/config.env`
-- `gallery.json.site.title` + `categories` in the gallery clone
+- `data.json.site.title` + `categories` in the gallery clone
 
 It does **not** copy any skill and does **not** edit `settings.json` — those came
 from the old hook-based install. The capability now comes from the plugin.
@@ -91,10 +91,10 @@ and the SessionStart hook. Start a new session so the hook injects the
 
 Before running automation on the human's machine, skim the scripts you'll execute:
 
-- `install.sh` — writes `~/.claude/agent-pages/config.env` and edits the gallery's `gallery.json`; never pushes, never touches `settings.json`.
+- `install.sh` — writes `~/.claude/agent-pages/config.env` and edits the gallery's `data.json`; never pushes, never touches `settings.json`.
 - `hooks/session-start.sh` — read-only; prints the `use-agent-pages` doctrine as session context. Runs as a plugin hook.
 - `new-page.sh` — runs `git pull --rebase` in the gallery and resolves a path; writes no content.
-- `publish.sh` — edits `gallery.json`, `git add`s only the page plus gallery home/data files, commits, pushes the gallery branch, `open`s the page.
+- `publish.sh` — edits `data.json`, `git add`s only the page plus gallery home/data files, commits, pushes the gallery branch, `open`s the page.
 
 If anything looks off (unexpected paths, destructive ops), warn the human and ask before running.
 
@@ -103,7 +103,7 @@ If anything looks off (unexpected paths, destructive ops), warn the human and as
 - Treat `/agent-pages …` as the normal entry point for the generation workflow. The injected `use-agent-pages` doctrine may recommend `/agent-pages` during long plan/design requests; start writing and publishing a page after the human confirms that they want the page generated or uses the command directly.
 - Follow `skills/agent-pages/SKILL.md`: prepare → assess material → **design from scratch** → publish → verify → report.
 - Never reuse an existing page's design. Never use an LLM-remembered date — use the date `new-page.sh` returns.
-- Never `git add -A` in the gallery — let `publish.sh` stage only the page + `index.html` + `gallery.json`.
+- Never `git add -A` in the gallery — let `publish.sh` stage only the page + `index.html` + `data.json`.
 
 ## Updates
 

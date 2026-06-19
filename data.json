@@ -1,5 +1,5 @@
 {
-  "$schema": "./gallery.schema.json",
+  "$schema": "./data.schema.json",
   "version": 1,
   "site": {
     "title": "Agent <Pages/>"

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <!-- Customize gallery metadata in gallery.json. -->
+    <!-- Customize gallery metadata in data.json. -->
     <title>Agent &lt;Pages/&gt;</title>
     <meta name="description" content="agent-pages gallery." />
     <link rel="icon" href="data:," />
@@ -827,7 +827,7 @@
 
       async function loadGallery() {
         try {
-          const response = await fetch("./gallery.json", { cache: "no-cache" });
+          const response = await fetch("./data.json", { cache: "no-cache" });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           state.data = await response.json();
         } catch (error) {

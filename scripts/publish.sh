@@ -3,7 +3,7 @@ set -euo pipefail
 #
 # publish.sh — close the loop for an agent-pages page.
 #
-# Deterministic finish: register the page in gallery.json, commit ONLY the page
+# Deterministic finish: register the page in data.json, commit ONLY the page
 # + gallery home/data files, push (with a rebase retry), and open the page
 # locally. The assistant still designs/writes the page; this script just
 # publishes it reliably.
@@ -48,7 +48,7 @@ case "$date" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) ap_die "--date
 ap_require_gallery
 gallery="$AGENT_PAGES_PATH"
 index="$gallery/index.html"
-gallery_json="$gallery/gallery.json"
+data_json="$gallery/data.json"
 
 # --- resolve the page to an absolute path, then to a gallery-relative path ---
 case "$file" in
@@ -75,9 +75,9 @@ fi
 # --- update structured gallery data ---
 index_status="skipped"
 if [ "$do_index" -eq 1 ]; then
-  command -v python3 >/dev/null 2>&1 || ap_die "python3 is required to update gallery.json"
+  command -v python3 >/dev/null 2>&1 || ap_die "python3 is required to update data.json"
   index_status="$(
-    python3 - "$gallery_json" "$href" "$title" "$date" "$year" "$slug" "$tags" "$category" <<'PY'
+    python3 - "$data_json" "$href" "$title" "$date" "$year" "$slug" "$tags" "$category" <<'PY'
 import json
 import os
 import sys
@@ -110,24 +110,24 @@ def unique(values):
 
 def read_data(path):
     if not os.path.exists(path):
-        return {"$schema": "./gallery.schema.json", "version": 1, "updatedAt": "", "categories": DEFAULT_CATEGORIES, "tags": [], "entries": []}
+        return {"$schema": "./data.schema.json", "version": 1, "updatedAt": "", "categories": DEFAULT_CATEGORIES, "tags": [], "entries": []}
     with open(path, "r", encoding="utf-8") as fh:
         try:
             data = json.load(fh)
         except json.JSONDecodeError as exc:
-            raise SystemExit(f"gallery.json is invalid JSON: {exc}") from exc
+            raise SystemExit(f"data.json is invalid JSON: {exc}") from exc
     if not isinstance(data, dict):
-        raise SystemExit("gallery.json must contain a JSON object")
+        raise SystemExit("data.json must contain a JSON object")
     data.setdefault("version", 1)
-    data.setdefault("$schema", "./gallery.schema.json")
+    data.setdefault("$schema", "./data.schema.json")
     data.setdefault("updatedAt", "")
     data.setdefault("categories", DEFAULT_CATEGORIES)
     data.setdefault("tags", [])
     data.setdefault("entries", [])
     if not isinstance(data["categories"], list):
-        raise SystemExit("gallery.json categories must be an array")
+        raise SystemExit("data.json categories must be an array")
     if not isinstance(data["entries"], list):
-        raise SystemExit("gallery.json entries must be an array")
+        raise SystemExit("data.json entries must be an array")
     return data
 
 def category_slug(item):
@@ -154,7 +154,7 @@ known_categories = {category_slug(item) for item in data["categories"]}
 category = normalize_tag(category) or "other"
 if category not in known_categories:
     options = ", ".join(category_slug(item) for item in data["categories"] if category_slug(item))
-    raise SystemExit(f"unknown category: {category}. Choose one of: {options}; or add it to gallery.json categories; or use other")
+    raise SystemExit(f"unknown category: {category}. Choose one of: {options}; or add it to data.json categories; or use other")
 entry = {
     "title": title,
     "href": href,
@@ -214,7 +214,7 @@ fi
 
 # --- commit ONLY the page + gallery home/data files ---
 [ -n "$message" ] || message="feat($category): add $slug page"
-git -C "$gallery" add -- "$abs" "$index" "$gallery_json"
+git -C "$gallery" add -- "$abs" "$index" "$data_json"
 commit_status="committed"
 if git -C "$gallery" diff --cached --quiet; then
   commit_status="nothing-to-commit"

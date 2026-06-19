@@ -9,7 +9,7 @@ set -euo pipefail
 #
 #   1. writes your runtime config -> ~/.claude/agent-pages/config.env
 #      (gallery path = this repo clone, remote/branch = this repo's origin)
-#   2. seeds gallery metadata      -> gallery.json (title + category options)
+#   2. seeds gallery metadata      -> data.json (title + category options)
 #   3. prints the /plugin commands to install the capability
 #
 # It is idempotent and local-only — it never pushes and never edits settings.json.
@@ -72,10 +72,10 @@ EOF
 fi
 
 # --- 2. gallery metadata ---
-gallery_json="$gallery/gallery.json"
-if [ -f "$gallery_json" ]; then
+data_json="$gallery/data.json"
+if [ -f "$data_json" ]; then
   if command -v python3 >/dev/null 2>&1; then
-    python3 - "$gallery_json" "$gallery_name" <<'PY'
+    python3 - "$data_json" "$gallery_name" <<'PY'
 import json
 import sys
 
@@ -93,7 +93,7 @@ path, title = sys.argv[1:3]
 with open(path, "r", encoding="utf-8") as fh:
     data = json.load(fh)
 site = data.setdefault("site", {})
-data.setdefault("$schema", "./gallery.schema.json")
+data.setdefault("$schema", "./data.schema.json")
 data.setdefault("categories", DEFAULT_CATEGORIES)
 site["title"] = title
 site.pop("description", None)
@@ -101,9 +101,9 @@ with open(path, "w", encoding="utf-8") as fh:
     json.dump(data, fh, ensure_ascii=False, indent=2)
     fh.write("\n")
 PY
-    say "gallery -> $gallery_json (title: $gallery_name)"
+    say "gallery -> $data_json (title: $gallery_name)"
   else
-    say "gallery -> python3 not found; kept $gallery_json unchanged"
+    say "gallery -> python3 not found; kept $data_json unchanged"
   fi
 fi
 

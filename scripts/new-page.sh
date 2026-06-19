@@ -9,7 +9,7 @@ set -euo pipefail
 # JSON. It does NOT write page content — the assistant designs and writes that.
 #
 # Pages are organized by category: <category>/<yyyyMMdd>-<slug>.html. The
-# category is a slug from gallery.json's fixed category set.
+# category is a slug from data.json's fixed category set.
 #
 # Usage:
 #   scripts/new-page.sh --category <slug> --slug <kebab-slug> [--no-pull]
@@ -35,7 +35,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-[ -n "$category" ] || ap_die "--category is required (a slug from gallery.json categories, e.g. engineering)"
+[ -n "$category" ] || ap_die "--category is required (a slug from data.json categories, e.g. engineering)"
 [ -n "$slug" ]     || ap_die "--slug is required (kebab-case, short, English)"
 case "$category" in
   */*|*\\*|.|..) ap_die "invalid category name: $category" ;;
@@ -44,9 +44,9 @@ esac
 ap_require_gallery
 gallery="$AGENT_PAGES_PATH"
 
-# --- validate category against gallery.json (best-effort; needs python3) ---
-if command -v python3 >/dev/null 2>&1 && [ -f "$gallery/gallery.json" ]; then
-  if ! python3 - "$gallery/gallery.json" "$category" <<'PY'
+# --- validate category against data.json (best-effort; needs python3) ---
+if command -v python3 >/dev/null 2>&1 && [ -f "$gallery/data.json" ]; then
+  if ! python3 - "$gallery/data.json" "$category" <<'PY'
 import json
 import sys
 
@@ -68,7 +68,7 @@ for item in data.get("categories") or []:
 sys.exit(0 if (not slugs or cat in slugs) else 1)
 PY
   then
-    ap_die "unknown category: $category (choose a slug from gallery.json categories, add it there, or use 'other')"
+    ap_die "unknown category: $category (choose a slug from data.json categories, add it there, or use 'other')"
   fi
 fi
 
