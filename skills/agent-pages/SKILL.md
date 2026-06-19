@@ -6,9 +6,9 @@ description: |
 
 # Agent Pages Skill
 
-把一个主题/资料生成为一份独立 HTML 页面（适合分享、阅读、复盘），并发布到你的「画廊」仓库（你 fork 的 agent-pages 仓库，同时也是部署到 GitHub Pages 的站点）。
+把一个主题/资料生成为一份独立 HTML 页面（适合分享、阅读、复盘），并发布到你的站点仓库（一个独立 git 仓 `AGENT_PAGES_PATH`，部署到 GitHub Pages；首次由 `setup.sh` 从插件 `templates/` 脚手架而来）。
 
-执行链路：`new-page.sh`（同步 + 算路径）→ 评估素材 → 从零设计并写出 HTML → `publish.sh`（登记 `data.json` + commit + push + 打开）。脚本负责确定性的脏活，**页面设计这件创造性的事由你来做**。
+执行链路：`setup.sh`（仅首次：脚手架站点 + 写配置）→ `new-page.sh`（同步 + 算路径）→ 评估素材 → 从零设计并写出 HTML → `publish.sh`（登记 `data.json` + commit + push + 打开）。脚本负责确定性的脏活，**页面设计这件创造性的事由你来做**。
 
 ## When To Use This Skill
 
@@ -20,25 +20,41 @@ description: |
 
 其他自然语言（"帮我做个 H5"、"生成一个网页"等）可以先理解为普通请求，避免在用户未确认前直接开始写文件和发布。
 
-## 配置（去硬编码）
+## 路径与配置（插件提供，去硬编码）
 
-所有路径来自 `install.sh` 写入的配置文件，**不要把任何仓库路径写死在脑子里**：
+agent-pages 以 Claude Code 插件分发。运行时有两个固定位置（在本 skill 文本里会被替换成真实绝对路径，直接用即可，**不要把任何路径写死在脑子里**）：
+
+- **脚本**在插件里：`${CLAUDE_PLUGIN_ROOT}/scripts/`（`setup.sh` / `new-page.sh` / `publish.sh`）
+- **配置 + 状态**在插件持久数据目录：`${CLAUDE_PLUGIN_DATA}/config.env`（跨插件更新存活），由 `setup.sh` 写入，含
+  `AGENT_PAGES_PATH`（站点 git 仓目录）/ `AGENT_PAGES_REPO` / `AGENT_PAGES_BRANCH` / `AGENT_PAGES_SITE_BASE_URL` / `AGENT_PAGES_NAME`
+
+调用任何脚本前，先把配置路径显式传给它们（脚本据此 source 配置）：
 
 ```bash
-. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-# 得到：AGENT_PAGES_PATH / AGENT_PAGES_REPO / AGENT_PAGES_BRANCH /
-#       AGENT_PAGES_SITE_BASE_URL / AGENT_PAGES_NAME
+export AGENT_PAGES_CONFIG_FILE="${CLAUDE_PLUGIN_DATA}/config.env"
 ```
 
-- 画廊根目录 = `$AGENT_PAGES_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
-- 脚本就在画廊里：`$AGENT_PAGES_PATH/scripts/`
-- 若配置文件不存在 → 说明尚未安装，提示用户在画廊 clone 里运行 `./scripts/install.sh`，先不要硬造路径。
-- 首页标题来自 `data.json.site.title`，安装时默认 `Agent <Pages/>`；末尾形如 `<Pages/>` 的 token 会按 code/等宽风格渲染。
+- 站点根 = `$AGENT_PAGES_PATH`（一个**独立** git 仓，部署到 GitHub Pages；页面写在这里、从这里 push）。
+- 首页标题来自 `data.json.site.title`，默认 `Agent <Pages/>`；末尾形如 `<Pages/>` 的 token 会按 code/等宽风格渲染。
 - `data.schema.json` 是 `data.json` 的结构契约；`data.json.categories` 是相对固定的分类选项，手动维护时不要偏离其中的字段。
 
 目录结构：两级，**按分类组织** —— `<category>/<yyyyMMdd>-<slug>.html`，例如 `engineering/20260604-server-components.html`。`category` 必须是 `data.json.categories` 里的某个 `slug`。
 
 ## 工作流
+
+### Step 0 — 首次使用先 setup（仅一次）
+
+若 `${CLAUDE_PLUGIN_DATA}/config.env` 不存在，说明站点还没初始化。先跑一次 setup（站点目录默认 `$HOME/agent-pages`，可先与用户确认目录/标题/repo）：
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/setup.sh" \
+  --config "${CLAUDE_PLUGIN_DATA}/config.env" \
+  --templates "${CLAUDE_PLUGIN_ROOT}/templates" \
+  --path "$HOME/agent-pages"
+  # 可选：--name "<标题>" --repo "<git-url>" --site "<public-url>"
+```
+
+它会从插件 `templates/` 拷出站点脚手架（`index.html`/`data.json`/`data.schema.json`/`CNAME.example`）、`git init`、把配置+状态写进 `config.env`，并提示用户建 GitHub repo + 开 Pages。配置已存在则跳过本步，直接进 Step 1。
 
 ### Step 1 — 准备（同步 + 解析路径）
 
@@ -51,8 +67,8 @@ description: |
 然后调用脚本（它会校验分类、同步仓库、用**系统时钟**取当天日期、解析并去重目标路径，输出 JSON）：
 
 ```bash
-. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-"$AGENT_PAGES_PATH/scripts/new-page.sh" --category "<category-slug>" --slug "<slug>"
+export AGENT_PAGES_CONFIG_FILE="${CLAUDE_PLUGIN_DATA}/config.env"
+"${CLAUDE_PLUGIN_ROOT}/scripts/new-page.sh" --category "<category-slug>" --slug "<slug>"
 ```
 
 从返回 JSON 读取 `targetPath` / `relPath` / `dateHuman` / `category` / `isNewCategory`。
@@ -120,8 +136,8 @@ description: |
 - 用逗号分隔传给 `--tags`，例如 `"React,Server Components,架构"`。
 
 ```bash
-. "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-"$AGENT_PAGES_PATH/scripts/publish.sh" \
+export AGENT_PAGES_CONFIG_FILE="${CLAUDE_PLUGIN_DATA}/config.env"
+"${CLAUDE_PLUGIN_ROOT}/scripts/publish.sh" \
   --file "<relPath 或 targetPath>" \
   --title "<人读得懂的中文/英文标题>" \
   --date "<dateHuman, YYYY-MM-DD>" \
@@ -149,12 +165,13 @@ description: |
 
 `/agent-pages 续写 <已有文件名>`：
 
-1. 在 `$AGENT_PAGES_PATH` 下 `find` 该文件（模糊匹配 slug）。
+1. 先取站点目录：`. "${CLAUDE_PLUGIN_DATA}/config.env"` 拿到 `$AGENT_PAGES_PATH`，在其下 `find` 该文件（模糊匹配 slug）。
 2. 多结果 → 列给用户选。
 3. `Read` 原文，用 `Edit` 增量修改；保持原页面设计语言（配色/字体/间距 token），不要风格漂移。
 4. 重新发布时加 `--no-index`（续写通常不新增索引条目）：
    ```bash
-   "$AGENT_PAGES_PATH/scripts/publish.sh" --file "<file>" \
+   export AGENT_PAGES_CONFIG_FILE="${CLAUDE_PLUGIN_DATA}/config.env"
+   "${CLAUDE_PLUGIN_ROOT}/scripts/publish.sh" --file "<file>" \
      --title "<title>" --date "<原日期>" --no-index --message "feat(<category>): update <slug> - <what changed>"
    ```
    `publish.sh --no-index` 不会修改 `data.json`。若续写改了页面标题或标签，保留 `--no-index` 完成页面更新后，再手动维护 `data.json` 中对应条目的 `title` / `tags`。
@@ -169,7 +186,7 @@ description: |
 - ❌ 用 `<div>` 堆整个页面（语义化标签是底线）。
 - ❌ 引入大量本地依赖文件（必须单文件 + CDN）。
 - ❌ 用 LLM 记忆里的"今天日期"（一律用 `new-page.sh` 返回的日期）。
-- ❌ 把仓库路径写死（一律读 `config.env`）。
+- ❌ 把路径写死（脚本走 `${CLAUDE_PLUGIN_ROOT}/scripts/`，配置/站点路径走 `${CLAUDE_PLUGIN_DATA}/config.env`）。
 - ❌ 绕过 `publish.sh` 手动 `git add -A`（会带进无关改动；脚本只 add 页面 + index + data.json）。
 
 ## 约束优先级（继承全局）

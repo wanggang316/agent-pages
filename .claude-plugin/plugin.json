@@ -1,7 +1,7 @@
 {
   "name": "agent-pages",
   "version": "0.1.0",
-  "description": "Turn a conversation into a polished single-file HTML page and publish it to your own gallery. Ships the agent-pages workflow skill, the use-agent-pages bootstrap meta-skill, and a session-start injection hook.",
+  "description": "Turn a conversation into a polished single-file HTML page and publish it to your own site. Ships the agent-pages workflow skill, the use-agent-pages bootstrap meta-skill, a session-start injection hook, and the site templates.",
   "author": {
     "name": "Gump"
   },

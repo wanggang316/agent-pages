@@ -1,13 +1,12 @@
 # agent-pages
 
 **agent-pages** turns a conversation into a polished, single-file HTML page and
-publishes it to your own gallery — one command: `/agent-pages <topic>`.
+publishes it to your own site — one command: `/agent-pages <topic>`.
 
-It is a small, installable capability you add to a coding assistant (Claude Code
-first), shipped as a **Claude Code plugin**. This repo is **both** the capability
-(plugin: skills + hook + scripts) **and** the gallery template you deploy — you
-fork it, your generated pages live inside it, and GitHub Pages (or any static
-host) serves them.
+It ships as a **Claude Code plugin** installed from a marketplace. This repo is
+the plugin (skills + hook + scripts) and carries the site scaffold in
+`templates/`. Your generated pages live in a **separate** git repo you own
+(`AGENT_PAGES_PATH`), which GitHub Pages (or any static host) serves.
 
 ---
 
@@ -15,95 +14,77 @@ host) serves them.
 
 After setup, typing `/agent-pages <topic>` makes the assistant:
 
-1. sync your gallery repo and stamp today's date (from the system clock)
+1. sync your site repo and stamp today's date (from the system clock)
 2. design a page **from scratch** for that topic — structure, graphics, tables, motion, responsive UI
 3. write a single self-contained HTML file under `<category>/<yyyyMMdd>-<slug>.html`
-4. register it in `data.json` so the gallery home can render and filter it
-5. commit the page plus gallery home/data files, push, and open the page locally
+4. register it in `data.json` so the home page can render and filter it
+5. commit the page plus home/data files, push, and open the page locally
 
 The assistant does the creative part (page design). Scripts do the deterministic,
-error-prone part (sync, dates, paths, gallery data, commit/push).
+error-prone part (sync, dates, paths, data, commit/push).
 
 ---
 
 ## Install
 
-agent-pages ships as a **Claude Code plugin**. The same fork is both the plugin
-source and your gallery: configure the clone, then install the plugin from it.
-
-Send this to your assistant (copy/paste), pointing at your fork of this repo:
+Install the plugin from the marketplace inside Claude Code:
 
 ```text
-Help me install and deploy agent-pages: https://github.com/wanggang316/agent-pages
-Follow scripts/BOOTSTRAP.md.
-```
-
-Or do it yourself. First, from inside your gallery clone, write the runtime config
-and seed the gallery title:
-
-```bash
-./scripts/install.sh                          # asks for the gallery title; default: Agent <Pages/>
-./scripts/install.sh --name "Gump <Pages/>"   # non-interactive title
-./scripts/install.sh --site https://h5.example.com   # record a public base URL for live links
-```
-
-This writes your config to `~/.claude/agent-pages/config.env` and seeds
-`data.json` (title + categories). It does **not** copy any skill and does
-**not** edit `settings.json` — the capability comes from the plugin.
-
-Then install the plugin inside Claude Code (one time), pointing at the clone:
-
-```text
-/plugin marketplace add /absolute/path/to/your/agent-pages-clone
+/plugin marketplace add wanggang316/agent-pages
 /plugin install agent-pages@agent-pages
 ```
 
-The plugin provides the `agent-pages` workflow skill, the `use-agent-pages`
-bootstrap meta-skill, and a SessionStart hook that injects the `use-agent-pages`
-doctrine each session. That doctrine is what suggests `/agent-pages <topic>` when
-a standalone HTML artifact would communicate better than a long Markdown answer —
-it never creates a page on its own. Start a new Claude Code session and try
-`/agent-pages <topic>`.
+That registers the `agent-pages` workflow skill, the `use-agent-pages` bootstrap
+meta-skill, and a SessionStart hook. Start a new session, then run:
+
+```text
+/agent-pages <topic>
+```
+
+On the **first** run there's no site yet, so the skill runs `setup.sh` once:
+it scaffolds a site from the plugin's `templates/` into `AGENT_PAGES_PATH`
+(default `$HOME/agent-pages`), `git init`s it, and writes config + state to the
+plugin's persistent data dir. After that, every `/agent-pages` just generates and
+publishes pages. (You can also run setup explicitly — see [Setup details](#setup-details).)
 
 ---
 
 ## How it fits together
 
+Three locations, cleanly separated:
+
 ```
-your fork of this repo  =  your gallery  =  the deployed site  =  the plugin source
-├── .claude-plugin/
-│   ├── plugin.json             ← plugin manifest
-│   └── marketplace.json        ← local marketplace (source: ./)
-├── hooks/
-│   ├── hooks.json              ← SessionStart hook registration
-│   └── session-start.sh        ← injects the use-agent-pages doctrine
-├── skills/
-│   ├── agent-pages/SKILL.md        ← the workflow skill (/agent-pages)
-│   └── use-agent-pages/SKILL.md    ← bootstrap meta-skill (injected each session)
-├── index.html                  ← gallery home (renders data.json)
-├── data.json                   ← structured page list + tags for agents
-├── data.schema.json            ← JSON contract for gallery data
-├── <category>/                  ← one folder per category (engineering, design, …)
-│   └── 20260604-<slug>.html     ← generated pages
-└── scripts/                     ← run from inside the clone
-    ├── install.sh   new-page.sh   publish.sh   sync-upstream.sh
+1. the plugin (installed from the marketplace; lives under ~/.claude/plugins/…)
+   agent-pages/
+   ├── .claude-plugin/{plugin.json, marketplace.json}   ← manifest + marketplace (source: ./)
+   ├── skills/{agent-pages, use-agent-pages}/SKILL.md    ← the /agent-pages skill + injected doctrine
+   ├── hooks/{hooks.json, session-start.sh}              ← injects use-agent-pages each session
+   ├── scripts/{setup.sh, new-page.sh, publish.sh, lib/} ← the deterministic plumbing
+   └── templates/{index.html, data.json, data.schema.json, CNAME.example}  ← site scaffold
+
+2. config + state (persistent, survives plugin updates)
+   ${CLAUDE_PLUGIN_DATA}/config.env   = ~/.claude/plugins/data/agent-pages-agent-pages/config.env
+
+3. your site (a separate git repo you own → GitHub Pages)
+   $AGENT_PAGES_PATH/
+   ├── index.html  data.json  data.schema.json   ← copied from templates/ on first setup
+   └── <category>/<yyyyMMdd>-<slug>.html          ← generated pages
 ```
 
-The plugin distributes the capability (skills + hook); the clone holds the gallery
-data and runtime config. Nothing is hardcoded to one user: the skill reads
-`~/.claude/agent-pages/config.env`
-(`AGENT_PAGES_PATH`, `AGENT_PAGES_REPO`, `AGENT_PAGES_BRANCH`,
-`AGENT_PAGES_SITE_BASE_URL`, `AGENT_PAGES_NAME`). See
-`config.example.env`.
+Why this split: the plugin (capability) updates via the marketplace; your content
+and config never live inside the ephemeral plugin directory. The skill references
+scripts as `${CLAUDE_PLUGIN_ROOT}/scripts/…` and config as
+`${CLAUDE_PLUGIN_DATA}/config.env` (both substituted to real paths at runtime), so
+nothing is hardcoded.
 
-The gallery home reads its display title from `data.json.site.title`. The
-installer writes the same value there, and a trailing token wrapped like
-`<Pages/>` is rendered in a gradient monospace style.
+`config.env` holds `AGENT_PAGES_PATH`, `AGENT_PAGES_REPO`, `AGENT_PAGES_BRANCH`,
+`AGENT_PAGES_SITE_BASE_URL`, `AGENT_PAGES_NAME`, plus a setup-timestamp state line.
+See `config.example.env`.
 
-`data.schema.json` defines the data contract for agents that maintain
-`data.json`: `site` stores gallery metadata, `categories` stores the stable
-category options, `entries` stores pages, and `tags` stores the derived filter
-list rendered by the home page.
+The home page reads its display title from `data.json.site.title`; a trailing token
+wrapped like `<Pages/>` is rendered in a gradient monospace style. `data.schema.json`
+is the contract for `data.json`: `site` (metadata), `categories` (stable options),
+`entries` (pages), `tags` (derived filter list).
 
 ---
 
@@ -113,27 +94,48 @@ list rendered by the home page.
 - `/agent-pages 分类=engineering <topic>` — force the category folder
 - `/agent-pages 续写 <filename>` — iterate on an existing page
 
-The generation workflow starts from an explicit `/agent-pages …` command. The
-plugin's `use-agent-pages` doctrine (injected each session) may have the assistant
-recommend `/agent-pages <topic>` during long plan/design requests, but it should
-not create a page until you confirm or use the command.
+The workflow starts from an explicit `/agent-pages …` command. The plugin's
+`use-agent-pages` doctrine (injected each session) may recommend `/agent-pages
+<topic>` during long plan/design requests, but it never creates a page until you
+confirm or use the command.
 
-Each page lives under its category folder (`<category>/<yyyyMMdd>-<slug>.html`)
-and carries that category in `data.json`; the home page lets readers filter by
-category first, then by tag. Categories come from the fixed
-`data.json.categories` set — if none fit, the assistant uses `other` or asks
-before adding a new one. Pages also get topic tags: pass comma-separated tags with
-`scripts/publish.sh --tags "react,server-components"`.
+Each page lives under its category folder (`<category>/<yyyyMMdd>-<slug>.html`) and
+carries that category in `data.json`; the home page filters by category first, then
+by tag. Categories come from the fixed `data.json.categories` set — if none fit, the
+assistant uses `other` or asks before adding a new one. Pass extra topic tags with
+`publish.sh --tags "react,server-components"`.
 
-If material is thin, the assistant asks before either researching online or
-writing a TODO-marked outline — it won't fabricate facts.
+If material is thin, the assistant asks before researching online or writing a
+TODO-marked outline — it won't fabricate facts.
+
+---
+
+## Setup details
+
+`setup.sh` is idempotent and runs from the plugin; the skill invokes it on first
+use, but you can run it directly to control the path / repo / title:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/setup.sh" \
+  --config "${CLAUDE_PLUGIN_DATA}/config.env" \
+  --templates "${CLAUDE_PLUGIN_ROOT}/templates" \
+  --path "$HOME/agent-pages" \
+  --name "Gump <Pages/>" \
+  --repo git@github.com:you/your-pages.git \
+  --site https://h5.example.com
+```
+
+It copies the scaffold (keeping any existing files unless `--force`), `git init`s
+the site, seeds `data.json` (title + categories), and writes `config.env`.
 
 ---
 
 ## Deploy (GitHub Pages)
 
-- Settings → Pages → "Deploy from a branch" → `main` / root.
-- Custom domain: `cp CNAME.example CNAME`, edit, commit, push.
+Deploy your **site repo** (`AGENT_PAGES_PATH`), not this plugin repo:
+
+- Create a GitHub repo, push the site to it, then Settings → Pages → "Deploy from a branch" → `main` / root.
+- Custom domain: `cp CNAME.example CNAME`, edit, commit, push; set `AGENT_PAGES_SITE_BASE_URL` in `config.env` for live links.
 - Pages serves `index.html` at the root and pages at `/<category>/<yyyyMMdd>-<slug>.html`.
 
 Netlify / Vercel / Cloudflare Pages also work — it's static HTML, no build step.
@@ -142,25 +144,18 @@ Netlify / Vercel / Cloudflare Pages also work — it's static HTML, no build ste
 
 ## Updating
 
-```bash
-git remote add upstream <template-repo-url>   # first time only
-./scripts/sync-upstream.sh
-./scripts/install.sh                           # refresh config + gallery metadata
-```
-
-The plugin tracks the clone, so pulling template updates refreshes the skills and
-hook too. If a new session doesn't pick them up, re-run the `/plugin` install
-commands (or `/plugin marketplace update agent-pages`).
+- **The plugin** (skills, hook, scripts, templates): `/plugin marketplace update agent-pages`, then start a new session (or `/reload-plugins`).
+- **The site scaffold** after a template change: re-run `setup.sh --force` to re-copy `index.html` / `data.schema.json` (your `data.json` and pages are kept unless you also force them).
 
 ---
 
 ## Requirements
 
-- Claude Code with plugin support (for `/plugin marketplace add` / `/plugin install`)
-- git + bash + awk (default on macOS/Linux)
-- `jq` (optional) — used by the SessionStart hook to emit context JSON; falls back to awk/sed
+- Claude Code with plugin support (`/plugin marketplace add` / `/plugin install`)
+- git + bash (default on macOS/Linux)
+- `jq` (optional) — the SessionStart hook uses it to emit context JSON; falls back to awk/sed
 - `open` (macOS) to auto-open pages — optional
-- python3 — required for `publish.sh` and `install.sh` to update `data.json`
+- python3 — required by `setup.sh` and `publish.sh` to maintain `data.json`
 
 ## License
 
