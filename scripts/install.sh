@@ -1,41 +1,40 @@
 #!/usr/bin/env bash
 set -euo pipefail
 #
-# install.sh — make this machine capable of agent-pages.
+# install.sh — configure this machine's agent-pages gallery.
 #
-# What it does (idempotent, local-only — never pushes):
-#   1. installs the skill        -> ~/.claude/skills/agent-pages/SKILL.md
-#   2. writes your config        -> ~/.claude/agent-pages/config.env
+# agent-pages now ships as a Claude Code *plugin* (skills + commands + hooks).
+# The plugin is installed once via `/plugin` (see the printed instructions);
+# this script only does the gallery-local, deterministic setup:
+#
+#   1. writes your runtime config -> ~/.claude/agent-pages/config.env
 #      (gallery path = this repo clone, remote/branch = this repo's origin)
-#   3. (optional) installs the   -> ~/.claude/settings.json
-#      "/agent-pages" hint hook       UserPromptSubmit
+#   2. seeds gallery metadata      -> gallery.json (title + category options)
+#   3. prints the /plugin commands to install the capability
+#
+# It is idempotent and local-only — it never pushes and never edits settings.json.
 #
 # Run it from inside your gallery clone (the fork of this repo):
-#   ./scripts/install.sh [--gallery PATH] [--site URL] [--name "Agent <Pages/>"] [--with-hook|--no-hook] [--force]
+#   ./scripts/install.sh [--gallery PATH] [--site URL] [--name "Agent <Pages/>"] [--force]
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(git -C "$here" rev-parse --show-toplevel 2>/dev/null || dirname "$here")"
 
 claude_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-skills_dst="$claude_dir/skills/agent-pages"
 cfg_dir="$claude_dir/agent-pages"
 cfg_file="$cfg_dir/config.env"
-settings_file="$claude_dir/settings.json"
 
 gallery="$repo_root"
 site_url=""
 gallery_name=""
-with_hook=""
 force=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --gallery) gallery="${2:?}"; shift 2 ;;
     --site)    site_url="${2:?}"; shift 2 ;;
     --name)    gallery_name="${2:?}"; shift 2 ;;
-    --with-hook) with_hook=1; shift ;;
-    --no-hook) with_hook=0; shift ;;
     --force)   force=1; shift ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,21p' "$0"; exit 0 ;;
     *) echo "install: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -54,23 +53,7 @@ if [ -z "$gallery_name" ]; then
   fi
 fi
 
-if [ -z "$with_hook" ]; then
-  with_hook=0
-  if [ -t 0 ]; then
-    printf 'Install Claude Code /agent-pages recommendation hook? [y/N]: '
-    IFS= read -r hook_answer || hook_answer=""
-    case "$hook_answer" in
-      y|Y|yes|YES|Yes) with_hook=1 ;;
-    esac
-  fi
-fi
-
-# --- 1. skill ---
-mkdir -p "$skills_dst"
-cp "$repo_root/skills/agent-pages/SKILL.md" "$skills_dst/SKILL.md"
-say "skill   -> $skills_dst/SKILL.md"
-
-# --- 2. config ---
+# --- 1. config ---
 mkdir -p "$cfg_dir"
 remote="$(git -C "$repo_root" remote get-url origin 2>/dev/null || echo '')"
 branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'main')"
@@ -89,7 +72,7 @@ EOF
   say "config  -> $cfg_file"
 fi
 
-# --- gallery metadata ---
+# --- 2. gallery metadata ---
 gallery_json="$gallery/gallery.json"
 if [ -f "$gallery_json" ]; then
   if command -v python3 >/dev/null 2>&1; then
@@ -125,63 +108,20 @@ PY
   fi
 fi
 
-# --- 3. optional hint hook ---
-if [ "$with_hook" -eq 1 ]; then
-  if command -v python3 >/dev/null 2>&1; then
-    python3 - "$settings_file" <<'PY'
-import json, sys, os, shlex
-path = sys.argv[1]
-hint = (
-    "When the user's request would be easier to understand as a self-contained HTML artifact than as a long Markdown response, "
-    "briefly offer `/agent-pages <topic>` and ask whether they want that format. Good fits include side-by-side exploration or planning, "
-    "annotated code review, design systems or component variants, interactive prototypes, diagrams and research maps, slide/report-style communication, "
-    "incident/status/PR write-ups, or small custom review/editing UIs. Do not suggest it for quick answers, short explanations, routine edits, or when the user clearly wants plain text."
-)
-payload = {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": hint}}
-cmd = "cat >/dev/null 2>&1; printf '%s' " + shlex.quote(json.dumps(payload, ensure_ascii=False))
-data = {}
-if os.path.exists(path):
-    with open(path) as f:
-        try: data = json.load(f)
-        except Exception: data = {}
-hooks = data.setdefault("hooks", {}).setdefault("UserPromptSubmit", [])
-target = {"type": "command", "command": cmd, "timeout": 5,
-          "statusMessage": "Inject /agent-pages design hint"}
-existing = next(
-    (
-        h
-        for grp in hooks
-        for h in grp.get("hooks", [])
-        if h.get("type") == "command"
-        and "/agent-pages" in h.get("command", "")
-        and "additionalContext" in h.get("command", "")
-    ),
-    None,
-)
-if existing is None:
-    hooks.append({"hooks": [target]})
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    print("  hook    -> %s (UserPromptSubmit hint added)" % path)
-else:
-    existing.update(target)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    print("  hook    -> %s (UserPromptSubmit hint updated)" % path)
-PY
-  else
-    say "hook    -> python3 not found; add the snippet from hooks/agent-pages-hint.json to $settings_file manually"
-  fi
-else
-  say "hook    -> skipped (re-run with --with-hook to install the /agent-pages hint)"
-fi
-
+# --- 3. plugin install instructions ---
 cat <<EOF
 
-Done. Next:
-  - Restart Claude Code (or /reload) so it picks up the skill.
+Done. The gallery is configured. Now install the plugin (one time) inside Claude Code:
+
+  /plugin marketplace add $gallery
+  /plugin install agent-pages@agent-pages
+
+The plugin ships the skills (agent-pages workflow + use-agent-pages bootstrap)
+and a SessionStart hook that injects the use-agent-pages doctrine each session.
+There is no settings.json hook to install anymore.
+
+Next:
+  - Run the two /plugin commands above (or restart Claude Code afterwards).
   - Enable GitHub Pages on your fork (Settings > Pages > deploy from $branch).
   - Optionally set a domain: cp CNAME.example CNAME && edit it.
   - Try it:  /agent-pages <topic>

@@ -1,0 +1,15 @@
+{
+  "name": "agent-pages",
+  "owner": {
+    "name": "Gump",
+    "email": "1989wg@gmail.com"
+  },
+  "description": "Local marketplace for the agent-pages plugin (this repo is both the plugin and your gallery).",
+  "plugins": [
+    {
+      "name": "agent-pages",
+      "source": "./",
+      "description": "Turn a conversation into a polished single-file HTML page and publish it to your gallery; ships the workflow skill, the use-agent-pages meta-skill, and a session-start injection hook."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "agent-pages",
+  "version": "0.1.0",
+  "description": "Turn a conversation into a polished single-file HTML page and publish it to your own gallery. Ships the agent-pages workflow skill, the use-agent-pages bootstrap meta-skill, and a session-start injection hook.",
+  "author": {
+    "name": "Gump"
+  },
+  "homepage": "https://github.com/wanggang316/agent-pages",
+  "repository": "https://github.com/wanggang316/agent-pages",
+  "license": "MIT"
+}
