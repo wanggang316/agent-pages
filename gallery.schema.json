@@ -88,7 +88,7 @@
     "entry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["title", "href", "date", "year", "project", "slug", "tags"],
+      "required": ["title", "href", "date", "year", "category", "slug", "tags"],
       "properties": {
         "title": {
           "type": "string",
@@ -106,15 +106,11 @@
           "type": "string",
           "pattern": "^[0-9]{4}$"
         },
-        "project": {
+        "category": {
           "type": "string",
           "minLength": 1
         },
         "slug": {
-          "type": "string",
-          "minLength": 1
-        },
-        "category": {
           "type": "string",
           "minLength": 1
         },

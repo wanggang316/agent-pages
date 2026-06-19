@@ -67,7 +67,6 @@ AGENT_PAGES_REMOTE="$remote"
 AGENT_PAGES_BRANCH="$branch"
 AGENT_PAGES_SITE_BASE_URL="$site_url"
 AGENT_PAGES_GALLERY_NAME="$gallery_name"
-AGENT_PAGES_DEFAULT_PROJECT=""
 EOF
   say "config  -> $cfg_file"
 fi

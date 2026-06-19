@@ -17,7 +17,7 @@ After setup, typing `/agent-pages <topic>` makes the assistant:
 
 1. sync your gallery repo and stamp today's date (from the system clock)
 2. design a page **from scratch** for that topic — structure, graphics, tables, motion, responsive UI
-3. write a single self-contained HTML file under `<project>/<yyyyMMdd>-<slug>.html`
+3. write a single self-contained HTML file under `<category>/<yyyyMMdd>-<slug>.html`
 4. register it in `gallery.json` so the gallery home can render and filter it
 5. commit the page plus gallery home/data files, push, and open the page locally
 
@@ -83,7 +83,7 @@ your fork of this repo  =  your gallery  =  the deployed site  =  the plugin sou
 ├── index.html                  ← gallery home (renders gallery.json)
 ├── gallery.json                ← structured page list + tags for agents
 ├── gallery.schema.json         ← JSON contract for gallery data
-├── <project>/                   ← one folder per project
+├── <category>/                  ← one folder per category (engineering, design, …)
 │   └── 20260604-<slug>.html     ← generated pages
 └── scripts/                     ← run from inside the clone
     ├── install.sh   new-page.sh   publish.sh   sync-upstream.sh
@@ -93,8 +93,8 @@ The plugin distributes the capability (skills + hook); the clone holds the galle
 data and runtime config. Nothing is hardcoded to one user: the skill reads
 `~/.claude/agent-pages/config.env`
 (`AGENT_PAGES_GALLERY_PATH`, `AGENT_PAGES_REMOTE`, `AGENT_PAGES_BRANCH`,
-`AGENT_PAGES_SITE_BASE_URL`, `AGENT_PAGES_GALLERY_NAME`,
-`AGENT_PAGES_DEFAULT_PROJECT`). See `config.example.env`.
+`AGENT_PAGES_SITE_BASE_URL`, `AGENT_PAGES_GALLERY_NAME`). See
+`config.example.env`.
 
 The gallery home reads its display title from `gallery.json.site.title`. The
 installer writes the same value there, and the trailing token such as
@@ -110,8 +110,8 @@ list rendered by the home page.
 
 ## Usage
 
-- `/agent-pages <topic>` — generate a page (project = current working dir's basename)
-- `/agent-pages 项目=react <topic>` — force the project folder
+- `/agent-pages <topic>` — generate a page (the assistant infers a category from the topic)
+- `/agent-pages 分类=engineering <topic>` — force the category folder
 - `/agent-pages 续写 <filename>` — iterate on an existing page
 
 The generation workflow starts from an explicit `/agent-pages …` command. The
@@ -119,12 +119,12 @@ plugin's `use-agent-pages` doctrine (injected each session) may have the assista
 recommend `/agent-pages <topic>` during long plan/design requests, but it should
 not create a page until you confirm or use the command.
 
-Each published page gets tags in `gallery.json`. The publishing script always
-adds the project name as a tag, and agents can pass extra comma-separated tags
-with `scripts/publish.sh --tags "react,server-components"`. Each page also gets
-one category from `gallery.json.categories`, and the home page lets readers
-filter by category before filtering by tag. If none of the configured categories
-fit, ask whether to add a new category or publish under `Other`.
+Each page lives under its category folder (`<category>/<yyyyMMdd>-<slug>.html`)
+and carries that category in `gallery.json`; the home page lets readers filter by
+category first, then by tag. Categories come from the fixed
+`gallery.json.categories` set — if none fit, the assistant uses `other` or asks
+before adding a new one. Pages also get topic tags: pass comma-separated tags with
+`scripts/publish.sh --tags "react,server-components"`.
 
 If material is thin, the assistant asks before either researching online or
 writing a TODO-marked outline — it won't fabricate facts.
@@ -135,7 +135,7 @@ writing a TODO-marked outline — it won't fabricate facts.
 
 - Settings → Pages → "Deploy from a branch" → `main` / root.
 - Custom domain: `cp CNAME.example CNAME`, edit, commit, push.
-- Pages serves `index.html` at the root and pages at `/<project>/<yyyyMMdd>-<slug>.html`.
+- Pages serves `index.html` at the root and pages at `/<category>/<yyyyMMdd>-<slug>.html`.
 
 Netlify / Vercel / Cloudflare Pages also work — it's static HTML, no build step.
 

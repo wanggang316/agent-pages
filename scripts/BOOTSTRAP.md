@@ -85,7 +85,7 @@ and the SessionStart hook. Start a new session so the hook injects the
 
 - Repo Settings → Pages → "Deploy from a branch" → `main` / root.
 - Custom domain: `cp CNAME.example CNAME`, edit, commit, push.
-- Pages serves `index.html` at the root and each page at `/<project>/<yyyyMMdd>-<slug>.html`.
+- Pages serves `index.html` at the root and each page at `/<category>/<yyyyMMdd>-<slug>.html`.
 
 ## Safety note (review before running)
 

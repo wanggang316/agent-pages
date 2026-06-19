@@ -8,11 +8,13 @@ set -euo pipefail
 # locally. The assistant still designs/writes the page; this script just
 # publishes it reliably.
 #
+# Pages are organized by category: <category>/<yyyyMMdd>-<slug>.html. The
+# category defaults to the page's parent folder; pass --category to override.
+#
 # Usage:
-#   scripts/publish.sh --project <name> --file <path> --title "<human title>" \
-#                      --date <YYYY-MM-DD> [--tags "tag-a,tag-b"] \
-#                      [--category <category-slug>] \
-#                      [--message "<commit msg>"] \
+#   scripts/publish.sh --file <path> --title "<human title>" \
+#                      --date <YYYY-MM-DD> [--category <category-slug>] \
+#                      [--tags "tag-a,tag-b"] [--message "<commit msg>"] \
 #                      [--no-index] [--no-push] [--no-open]
 #
 # Output (stdout): a single JSON object with commit + url info.
@@ -21,11 +23,10 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/config.sh
 . "$here/lib/config.sh"
 
-project="" file="" title="" date="" tags="" category="" message=""
+file="" title="" date="" tags="" category="" message=""
 do_index=1 do_push=1 do_open=1
 while [ $# -gt 0 ]; do
   case "$1" in
-    --project) project="${2:-}"; shift 2 ;;
     --file)    file="${2:-}"; shift 2 ;;
     --title)   title="${2:-}"; shift 2 ;;
     --date)    date="${2:-}"; shift 2 ;;
@@ -39,7 +40,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-[ -n "$project" ] || ap_die "--project is required"
 [ -n "$file" ]    || ap_die "--file is required"
 [ -n "$title" ]   || ap_die "--title is required (human-readable, for the index)"
 [ -n "$date" ]    || ap_die "--date is required (YYYY-MM-DD)"
@@ -65,6 +65,11 @@ href="./$rel"
 fname="$(basename "$abs")"
 slug="${fname%.html}"; slug="${slug#[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-}"
 year="${date%%-*}"
+
+# --- category: explicit flag wins, else derive from the page's parent folder ---
+if [ -z "$category" ]; then
+  case "$rel" in */*) category="${rel%%/*}" ;; esac
+fi
 : "${category:=other}"
 
 # --- update structured gallery data ---
@@ -72,13 +77,13 @@ index_status="skipped"
 if [ "$do_index" -eq 1 ]; then
   command -v python3 >/dev/null 2>&1 || ap_die "python3 is required to update gallery.json"
   index_status="$(
-    python3 - "$gallery_json" "$href" "$title" "$date" "$year" "$project" "$slug" "$tags" "$category" <<'PY'
+    python3 - "$gallery_json" "$href" "$title" "$date" "$year" "$slug" "$tags" "$category" <<'PY'
 import json
 import os
 import sys
 from collections import Counter
 
-path, href, title, date, year, project, slug, raw_tags, category = sys.argv[1:10]
+path, href, title, date, year, slug, raw_tags, category = sys.argv[1:9]
 
 DEFAULT_CATEGORIES = [
     {"slug": "engineering", "label": "Engineering"},
@@ -144,7 +149,7 @@ def canonical(data):
 
 data = read_data(path)
 before = canonical(data)
-entry_tags = unique([project, *raw_tags.replace(";", ",").split(",")])
+entry_tags = unique(raw_tags.replace(";", ",").split(","))
 known_categories = {category_slug(item) for item in data["categories"]}
 category = normalize_tag(category) or "other"
 if category not in known_categories:
@@ -155,7 +160,6 @@ entry = {
     "href": href,
     "date": date,
     "year": year,
-    "project": project,
     "slug": slug,
     "category": category,
     "tags": entry_tags,
@@ -209,7 +213,7 @@ PY
 fi
 
 # --- commit ONLY the page + gallery home/data files ---
-[ -n "$message" ] || message="feat($project): add $slug page"
+[ -n "$message" ] || message="feat($category): add $slug page"
 git -C "$gallery" add -- "$abs" "$index" "$gallery_json"
 commit_status="committed"
 if git -C "$gallery" diff --cached --quiet; then

@@ -14,8 +14,8 @@ description: |
 
 常规使用方式是输入以 `/agent-pages` 开头的命令：
 
-- `/agent-pages <主题>` — 用该主题生成 HTML 页面
-- `/agent-pages 项目=react <主题>` — 显式指定项目目录（落到画廊的 `react/` 下）
+- `/agent-pages <主题>` — 用该主题生成 HTML 页面（分类由你从固定分类集里推断）
+- `/agent-pages 分类=engineering <主题>` — 显式指定分类（落到画廊的 `engineering/` 下）
 - `/agent-pages 续写 <已有文件名>` — 在已有页面上迭代/补充
 
 其他自然语言（"帮我做个 H5"、"生成一个网页"等）可以先理解为普通请求或建议场景，避免直接开始写文件和发布。
@@ -29,8 +29,7 @@ agent-pages 作为插件安装后，其 SessionStart hook 会注入 `use-agent-p
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
 # 得到：AGENT_PAGES_GALLERY_PATH / AGENT_PAGES_REMOTE / AGENT_PAGES_BRANCH /
-#       AGENT_PAGES_SITE_BASE_URL / AGENT_PAGES_GALLERY_NAME /
-#       AGENT_PAGES_DEFAULT_PROJECT
+#       AGENT_PAGES_SITE_BASE_URL / AGENT_PAGES_GALLERY_NAME
 ```
 
 - 画廊根目录 = `$AGENT_PAGES_GALLERY_PATH`（一个 git 仓库，`origin` 指向用户的 fork）
@@ -39,7 +38,7 @@ agent-pages 作为插件安装后，其 SessionStart hook 会注入 `use-agent-p
 - 首页标题来自 `gallery.json.site.title`，安装时默认 `Agent <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
 - `gallery.schema.json` 是 `gallery.json` 的结构契约；`gallery.json.categories` 是相对固定的分类选项，手动维护时不要偏离其中的字段。
 
-目录结构：两级 —— `<项目>/<yyyyMMdd>-<slug>.html`，例如 `react/20260604-server-components.html`。
+目录结构：两级，**按分类组织** —— `<category>/<yyyyMMdd>-<slug>.html`，例如 `engineering/20260604-server-components.html`。`category` 必须是 `gallery.json.categories` 里的某个 `slug`。
 
 ## 工作流
 
@@ -48,20 +47,20 @@ agent-pages 作为插件安装后，其 SessionStart hook 会注入 `use-agent-p
 解析命令意图：
 
 1. **主题**（topic）：命令未给则从会话上下文归纳，并向用户确认一次。
-2. **项目**（project）：显式 `项目=xxx` 优先；否则取 **触发时刻 Claude Code 工作目录的 basename**；`$AGENT_PAGES_DEFAULT_PROJECT` 非空时用它。
+2. **分类**（category）：显式 `分类=xxx` 优先；否则**从 `gallery.json.categories` 的固定分类集里挑一个最贴合主题的 `slug`**（如 engineering / product / design / research / learning / operations）；实在难归类才用 `other`，或向用户确认。
 3. **slug**：从主题提炼，kebab-case、英文为主、简短可识别。
 
-然后调用脚本（它会同步仓库、用**系统时钟**取当天日期、解析并去重目标路径，输出 JSON）：
+然后调用脚本（它会校验分类、同步仓库、用**系统时钟**取当天日期、解析并去重目标路径，输出 JSON）：
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
-"$AGENT_PAGES_GALLERY_PATH/scripts/new-page.sh" --project "$PROJECT" --slug "<slug>"
+"$AGENT_PAGES_GALLERY_PATH/scripts/new-page.sh" --category "<category-slug>" --slug "<slug>"
 ```
 
-从返回 JSON 读取 `targetPath` / `relPath` / `dateHuman` / `isNewProject`。
+从返回 JSON 读取 `targetPath` / `relPath` / `dateHuman` / `category` / `isNewCategory`。
 
-- `isNewProject=true` 且用户没显式 `项目=xxx` → 告知"将新建项目目录 <project>"。
+- `new-page.sh` 会拒绝不在 `gallery.json.categories` 里的分类；选 slug 前先读一遍该列表。
+- `isNewCategory=true` → 告知"将新建分类目录 <category>"（首次往该分类发页面时正常）。
 - 不要自己用 LLM 记忆里的日期，一切以脚本返回的 `date`/`dateHuman` 为准。
 
 ### Step 2 — 评估内容充分性
@@ -78,7 +77,7 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 
 > **⚠️ 每次都从零设计，不要参考历史页面**
 >
-> - **禁止** 读取画廊里的 `index.html` 或任何 `<项目>/*.html` 去"借鉴"主题/配色/版式/组件/动效/DOM 结构。
+> - **禁止** 读取画廊里的 `index.html` 或任何 `<category>/*.html` 去"借鉴"主题/配色/版式/组件/动效/DOM 结构。
 > - **禁止** 沿用上一次会话刚生成的风格——哪怕主题相近。
 > - 每次都基于当前主题**独立、原创**地推导设计语言：主题决定情绪，情绪决定配色/字体/版式/动效。
 > - 不小心瞄到旧页面，立刻清空印象，按本次主题重新设计。
@@ -116,18 +115,15 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 
 页面写好后调用 `publish.sh`，它会：把条目登记进画廊 `gallery.json`（包含分类选项、页面列表与标签，首页从该 JSON 渲染左侧分类/标签筛选和年份列表）、**只** commit 页面 + `index.html` + `gallery.json`、push（失败自动 rebase 重试一次）、本地 `open`。
 
-发布时必须给页面分类和标签：
+发布时分类与 Step 1 一致，并补充标签：
 
-- 先读取 `gallery.json.categories`，从已有分类里选一个 `slug` 作为 `--category`。
-- 如果没有合适分类，先问用户是新增分类还是放到 `other`；不要擅自造新分类。
-- `publish.sh` 会自动加入项目名作为标签。
-- 根据主题额外提炼 1-4 个短标签，中文/英文均可，但同一画廊内尽量保持命名一致。
+- `--category` 传 Step 1 用的同一个分类 slug（页面已落在该分类目录下；省略时 `publish.sh` 会从父目录名推断）。必须来自 `gallery.json.categories`，不确定时用 `other`，不要擅自造新分类。
+- 根据主题提炼 1-4 个短标签，中文/英文均可，但同一画廊内尽量保持命名一致。
 - 用逗号分隔传给 `--tags`，例如 `"React,Server Components,架构"`。
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
 "$AGENT_PAGES_GALLERY_PATH/scripts/publish.sh" \
-  --project "<project>" \
   --file "<relPath 或 targetPath>" \
   --title "<人读得懂的中文/英文标题>" \
   --date "<dateHuman, YYYY-MM-DD>" \
@@ -136,11 +132,10 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 ```
 
 - `--title` 用页面 `<title>` 的人读短标题，**不要**直接塞英文 slug，也不要超过标题长度约束。
-- `--category` 必须来自 `gallery.json.categories`；不确定时用 `other` 或先让用户确认是否新增分类。
 - 从返回 JSON 读 `commit` / `liveUrl` / `pushStatus` / `indexStatus`。
 - `pushStatus=push-failed` → 告知用户远端冲突，提示手动处理，不要反复硬推。
 
-**校验**：发布后 `Read` 一遍画廊 `gallery.json`，确认新条目在 `entries` 顶部附近、`href` 相对路径可达、`category` 来自既有分类、`tags` 包含项目名与主题标签；必要时再打开 `index.html` 确认分类和标签筛选能显示。
+**校验**：发布后 `Read` 一遍画廊 `gallery.json`，确认新条目在 `entries` 顶部附近、`href` 相对路径可达、`category` 来自既有分类且与所在目录一致、`tags` 为主题标签；必要时再打开 `index.html` 确认分类和标签筛选能显示。
 
 ### Step 5 — 报告
 
@@ -161,8 +156,8 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 3. `Read` 原文，用 `Edit` 增量修改；保持原页面设计语言（配色/字体/间距 token），不要风格漂移。
 4. 重新发布时加 `--no-index`（续写通常不新增索引条目）：
    ```bash
-   "$AGENT_PAGES_GALLERY_PATH/scripts/publish.sh" --project "<p>" --file "<file>" \
-     --title "<title>" --date "<原日期>" --no-index --message "feat(<p>): update <slug> - <what changed>"
+   "$AGENT_PAGES_GALLERY_PATH/scripts/publish.sh" --file "<file>" \
+     --title "<title>" --date "<原日期>" --no-index --message "feat(<category>): update <slug> - <what changed>"
    ```
    `publish.sh --no-index` 不会修改 `gallery.json`。若续写改了页面标题或标签，保留 `--no-index` 完成页面更新后，再手动维护 `gallery.json` 中对应条目的 `title` / `tags`。
 
