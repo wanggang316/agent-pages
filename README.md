@@ -92,7 +92,7 @@ your fork of this repo  =  your gallery  =  the deployed site  =  the plugin sou
 The plugin distributes the capability (skills + hook); the clone holds the gallery
 data and runtime config. Nothing is hardcoded to one user: the skill reads
 `~/.claude/agent-pages/config.env`
-(`AGENT_PAGES_PATH`, `AGENT_PAGES_REMOTE`, `AGENT_PAGES_BRANCH`,
+(`AGENT_PAGES_PATH`, `AGENT_PAGES_REPO`, `AGENT_PAGES_BRANCH`,
 `AGENT_PAGES_SITE_BASE_URL`, `AGENT_PAGES_NAME`). See
 `config.example.env`.
 

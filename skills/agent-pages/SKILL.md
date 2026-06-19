@@ -26,7 +26,7 @@ description: |
 
 ```bash
 . "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agent-pages/config.env"
-# 得到：AGENT_PAGES_PATH / AGENT_PAGES_REMOTE / AGENT_PAGES_BRANCH /
+# 得到：AGENT_PAGES_PATH / AGENT_PAGES_REPO / AGENT_PAGES_BRANCH /
 #       AGENT_PAGES_SITE_BASE_URL / AGENT_PAGES_NAME
 ```
 

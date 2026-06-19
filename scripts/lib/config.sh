@@ -24,7 +24,7 @@ fi
 
 # --- defaults, with read-only compatibility for old config files ---
 : "${AGENT_PAGES_PATH:=${BUILD_H5_GALLERY_PATH:-$_ap_repo_root}}"
-: "${AGENT_PAGES_REMOTE:=${BUILD_H5_REMOTE:-}}"
+: "${AGENT_PAGES_REPO:=${BUILD_H5_REMOTE:-}}"
 : "${AGENT_PAGES_BRANCH:=${BUILD_H5_BRANCH:-main}}"
 : "${AGENT_PAGES_SITE_BASE_URL:=${BUILD_H5_SITE_BASE_URL:-}}"
 : "${AGENT_PAGES_NAME:=${BUILD_H5_GALLERY_NAME:-Agent <Pages/>}}"
