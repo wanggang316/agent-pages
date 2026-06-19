@@ -15,7 +15,7 @@ repo, and push it so GitHub Pages (or any static host) serves it.
 ## What ships in this repo
 
 - `index.html` — the gallery home (deployed site root; renders `gallery.json`)
-- `gallery.json` — structured page list + tags maintained by `publish.sh`
+- `gallery.json` — structured category options, page list, and tags maintained by `publish.sh`
 - `gallery.schema.json` — JSON contract for agents that maintain `gallery.json`
 - `skills/agent-pages/SKILL.md` — the portable skill (config-driven, no hardcoded paths)
 - `scripts/install.sh` — installs the skill + writes config (+ optional hint hook)

@@ -37,7 +37,7 @@ description: |
 - 脚本就在画廊里：`$AGENT_PAGES_GALLERY_PATH/scripts/`
 - 若配置文件不存在 → 说明尚未安装，提示用户在画廊 clone 里运行 `./scripts/install.sh`，先不要硬造路径。
 - 首页标题来自 `gallery.json.site.title`，安装时默认 `Agent <Pages/>`；`<Pages/>` 会按 `<HTML />` 风格渲染。
-- `gallery.schema.json` 是 `gallery.json` 的结构契约；手动维护时不要偏离其中的字段。
+- `gallery.schema.json` 是 `gallery.json` 的结构契约；`gallery.json.categories` 是相对固定的分类选项，手动维护时不要偏离其中的字段。
 
 目录结构：两级 —— `<项目>/<yyyyMMdd>-<slug>.html`，例如 `react/20260604-server-components.html`。
 
@@ -114,10 +114,12 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
 
 ### Step 4 — 发布（登记 gallery.json + commit + push + 打开）
 
-页面写好后调用 `publish.sh`，它会：把条目登记进画廊 `gallery.json`（包含页面列表与标签，首页从该 JSON 渲染左侧标签筛选和年份列表）、**只** commit 页面 + `index.html` + `gallery.json`、push（失败自动 rebase 重试一次）、本地 `open`。
+页面写好后调用 `publish.sh`，它会：把条目登记进画廊 `gallery.json`（包含分类选项、页面列表与标签，首页从该 JSON 渲染左侧分类/标签筛选和年份列表）、**只** commit 页面 + `index.html` + `gallery.json`、push（失败自动 rebase 重试一次）、本地 `open`。
 
-发布时必须给页面标签：
+发布时必须给页面分类和标签：
 
+- 先读取 `gallery.json.categories`，从已有分类里选一个 `slug` 作为 `--category`。
+- 如果没有合适分类，先问用户是新增分类还是放到 `other`；不要擅自造新分类。
 - `publish.sh` 会自动加入项目名作为标签。
 - 根据主题额外提炼 1-4 个短标签，中文/英文均可，但同一画廊内尽量保持命名一致。
 - 用逗号分隔传给 `--tags`，例如 `"React,Server Components,架构"`。
@@ -129,14 +131,16 @@ PROJECT="${PROJECT:-${AGENT_PAGES_DEFAULT_PROJECT:-$(basename "$PWD")}}"
   --file "<relPath 或 targetPath>" \
   --title "<人读得懂的中文/英文标题>" \
   --date "<dateHuman, YYYY-MM-DD>" \
+  --category "<category-slug>" \
   --tags "<tag1,tag2,tag3>"
 ```
 
 - `--title` 用页面 `<title>` 的人读短标题，**不要**直接塞英文 slug，也不要超过标题长度约束。
+- `--category` 必须来自 `gallery.json.categories`；不确定时用 `other` 或先让用户确认是否新增分类。
 - 从返回 JSON 读 `commit` / `liveUrl` / `pushStatus` / `indexStatus`。
 - `pushStatus=push-failed` → 告知用户远端冲突，提示手动处理，不要反复硬推。
 
-**校验**：发布后 `Read` 一遍画廊 `gallery.json`，确认新条目在 `entries` 顶部附近、`href` 相对路径可达、`tags` 包含项目名与主题标签；必要时再打开 `index.html` 确认标签筛选能显示。
+**校验**：发布后 `Read` 一遍画廊 `gallery.json`，确认新条目在 `entries` 顶部附近、`href` 相对路径可达、`category` 来自既有分类、`tags` 包含项目名与主题标签；必要时再打开 `index.html` 确认分类和标签筛选能显示。
 
 ### Step 5 — 报告
 

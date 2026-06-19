@@ -530,10 +530,7 @@
       }
 
       function getEntryCategory(entry) {
-        const href = String(entry.href || "").replace(/^\.?\//, "");
-        const slash = href.lastIndexOf("/");
-        if (slash > 0) return href.slice(0, slash);
-        return normalizeTag(entry.project) || "root";
+        return normalizeTag(entry.category) || "other";
       }
 
       function getCategories(data) {
@@ -542,9 +539,29 @@
           const category = getEntryCategory(entry);
           counts.set(category, (counts.get(category) || 0) + 1);
         }
-        return [...counts.entries()]
-          .map(([category, count]) => ({ slug: category, label: category, count }))
-          .sort((a, b) => collator.compare(a.label, b.label));
+
+        const configured = Array.isArray(data.categories) ? data.categories : [];
+        const categories = configured
+          .map((category) => ({
+            slug: normalizeTag(tagSlug(category)),
+            label: normalizeTag(tagLabel(category)),
+          }))
+          .filter((category) => category.slug && category.label);
+        const known = new Set(categories.map((category) => category.slug));
+
+        for (const category of counts.keys()) {
+          if (!known.has(category)) {
+            categories.push({ slug: category, label: category });
+          }
+        }
+
+        return categories
+          .map((category) => ({ ...category, count: counts.get(category.slug) || 0 }))
+          .sort((a, b) => {
+            if (a.slug === "other") return 1;
+            if (b.slug === "other") return -1;
+            return collator.compare(a.label, b.label);
+          });
       }
 
       function getTags(data) {

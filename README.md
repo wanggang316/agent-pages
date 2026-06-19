@@ -78,8 +78,9 @@ installer writes the same value there, and the trailing token such as
 `<HTML />` mark.
 
 `gallery.schema.json` defines the data contract for agents that maintain
-`gallery.json`: `site` stores gallery metadata, `entries` stores pages, and
-`tags` stores the derived filter list rendered by the home page.
+`gallery.json`: `site` stores gallery metadata, `categories` stores the stable
+category options, `entries` stores pages, and `tags` stores the derived filter
+list rendered by the home page.
 
 ---
 
@@ -96,9 +97,10 @@ a page until you confirm or use the command.
 
 Each published page gets tags in `gallery.json`. The publishing script always
 adds the project name as a tag, and agents can pass extra comma-separated tags
-with `scripts/publish.sh --tags "react,server-components"`. The home page also
-derives a category from each page's relative HTML folder path, then lets readers
-filter by category before filtering by tag.
+with `scripts/publish.sh --tags "react,server-components"`. Each page also gets
+one category from `gallery.json.categories`, and the home page lets readers
+filter by category before filtering by tag. If none of the configured categories
+fit, ask whether to add a new category or publish under `Other`.
 
 If material is thin, the assistant asks before either researching online or
 writing a TODO-marked outline — it won't fabricate facts.

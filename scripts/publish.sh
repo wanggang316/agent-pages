@@ -11,6 +11,7 @@ set -euo pipefail
 # Usage:
 #   scripts/publish.sh --project <name> --file <path> --title "<human title>" \
 #                      --date <YYYY-MM-DD> [--tags "tag-a,tag-b"] \
+#                      [--category <category-slug>] \
 #                      [--message "<commit msg>"] \
 #                      [--no-index] [--no-push] [--no-open]
 #
@@ -20,7 +21,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/config.sh
 . "$here/lib/config.sh"
 
-project="" file="" title="" date="" tags="" message=""
+project="" file="" title="" date="" tags="" category="" message=""
 do_index=1 do_push=1 do_open=1
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -29,6 +30,7 @@ while [ $# -gt 0 ]; do
     --title)   title="${2:-}"; shift 2 ;;
     --date)    date="${2:-}"; shift 2 ;;
     --tags)    tags="${2:-}"; shift 2 ;;
+    --category) category="${2:-}"; shift 2 ;;
     --message) message="${2:-}"; shift 2 ;;
     --no-index) do_index=0; shift ;;
     --no-push)  do_push=0; shift ;;
@@ -63,19 +65,30 @@ href="./$rel"
 fname="$(basename "$abs")"
 slug="${fname%.html}"; slug="${slug#[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-}"
 year="${date%%-*}"
+: "${category:=other}"
 
 # --- update structured gallery data ---
 index_status="skipped"
 if [ "$do_index" -eq 1 ]; then
   command -v python3 >/dev/null 2>&1 || ap_die "python3 is required to update gallery.json"
   index_status="$(
-    python3 - "$gallery_json" "$href" "$title" "$date" "$year" "$project" "$slug" "$tags" <<'PY'
+    python3 - "$gallery_json" "$href" "$title" "$date" "$year" "$project" "$slug" "$tags" "$category" <<'PY'
 import json
 import os
 import sys
 from collections import Counter
 
-path, href, title, date, year, project, slug, raw_tags = sys.argv[1:9]
+path, href, title, date, year, project, slug, raw_tags, category = sys.argv[1:10]
+
+DEFAULT_CATEGORIES = [
+    {"slug": "engineering", "label": "Engineering"},
+    {"slug": "product", "label": "Product"},
+    {"slug": "design", "label": "Design"},
+    {"slug": "research", "label": "Research"},
+    {"slug": "learning", "label": "Learning"},
+    {"slug": "operations", "label": "Operations"},
+    {"slug": "other", "label": "Other"},
+]
 
 def normalize_tag(value):
     return str(value or "").strip()
@@ -92,7 +105,7 @@ def unique(values):
 
 def read_data(path):
     if not os.path.exists(path):
-        return {"$schema": "./gallery.schema.json", "version": 1, "updatedAt": "", "tags": [], "entries": []}
+        return {"$schema": "./gallery.schema.json", "version": 1, "updatedAt": "", "categories": DEFAULT_CATEGORIES, "tags": [], "entries": []}
     with open(path, "r", encoding="utf-8") as fh:
         try:
             data = json.load(fh)
@@ -103,11 +116,28 @@ def read_data(path):
     data.setdefault("version", 1)
     data.setdefault("$schema", "./gallery.schema.json")
     data.setdefault("updatedAt", "")
+    data.setdefault("categories", DEFAULT_CATEGORIES)
     data.setdefault("tags", [])
     data.setdefault("entries", [])
+    if not isinstance(data["categories"], list):
+        raise SystemExit("gallery.json categories must be an array")
     if not isinstance(data["entries"], list):
         raise SystemExit("gallery.json entries must be an array")
     return data
+
+def category_slug(item):
+    if isinstance(item, str):
+        return normalize_tag(item)
+    if isinstance(item, dict):
+        return normalize_tag(item.get("slug") or item.get("label"))
+    return ""
+
+def category_label(item):
+    if isinstance(item, str):
+        return normalize_tag(item)
+    if isinstance(item, dict):
+        return normalize_tag(item.get("label") or item.get("slug"))
+    return ""
 
 def canonical(data):
     return json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -115,6 +145,11 @@ def canonical(data):
 data = read_data(path)
 before = canonical(data)
 entry_tags = unique([project, *raw_tags.replace(";", ",").split(",")])
+known_categories = {category_slug(item) for item in data["categories"]}
+category = normalize_tag(category) or "other"
+if category not in known_categories:
+    options = ", ".join(category_slug(item) for item in data["categories"] if category_slug(item))
+    raise SystemExit(f"unknown category: {category}. Choose one of: {options}; or add it to gallery.json categories; or use other")
 entry = {
     "title": title,
     "href": href,
@@ -122,6 +157,7 @@ entry = {
     "year": year,
     "project": project,
     "slug": slug,
+    "category": category,
     "tags": entry_tags,
 }
 
@@ -133,6 +169,19 @@ else:
     existing.update(entry)
 
 entries.sort(key=lambda item: (str(item.get("date", "")), str(item.get("title", ""))), reverse=True)
+
+category_counts = Counter()
+for item in entries:
+    if not isinstance(item, dict):
+        continue
+    item_category = normalize_tag(item.get("category")) or "other"
+    category_counts[item_category] += 1
+
+data["categories"] = [
+    {"slug": category_slug(item), "label": category_label(item), "count": category_counts[category_slug(item)]}
+    for item in data["categories"]
+    if category_slug(item) and category_label(item)
+]
 
 counts = Counter()
 for item in entries:

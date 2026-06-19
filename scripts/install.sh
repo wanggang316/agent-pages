@@ -97,11 +97,22 @@ if [ -f "$gallery_json" ]; then
 import json
 import sys
 
+DEFAULT_CATEGORIES = [
+    {"slug": "engineering", "label": "Engineering"},
+    {"slug": "product", "label": "Product"},
+    {"slug": "design", "label": "Design"},
+    {"slug": "research", "label": "Research"},
+    {"slug": "learning", "label": "Learning"},
+    {"slug": "operations", "label": "Operations"},
+    {"slug": "other", "label": "Other"},
+]
+
 path, title = sys.argv[1:3]
 with open(path, "r", encoding="utf-8") as fh:
     data = json.load(fh)
 site = data.setdefault("site", {})
 data.setdefault("$schema", "./gallery.schema.json")
+data.setdefault("categories", DEFAULT_CATEGORIES)
 site["title"] = title
 site.pop("description", None)
 with open(path, "w", encoding="utf-8") as fh:

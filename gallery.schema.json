@@ -4,7 +4,7 @@
   "title": "agent-pages gallery",
   "type": "object",
   "additionalProperties": true,
-  "required": ["version", "site", "updatedAt", "tags", "entries"],
+  "required": ["version", "site", "updatedAt", "categories", "tags", "entries"],
   "properties": {
     "$schema": {
       "type": "string"
@@ -27,6 +27,12 @@
     "updatedAt": {
       "type": "string"
     },
+    "categories": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/category"
+      }
+    },
     "tags": {
       "type": "array",
       "items": {
@@ -41,6 +47,25 @@
     }
   },
   "$defs": {
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slug", "label"],
+      "properties": {
+        "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
     "tag": {
       "type": "object",
       "additionalProperties": false,
@@ -86,6 +111,10 @@
           "minLength": 1
         },
         "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
           "type": "string",
           "minLength": 1
         },

@@ -5,6 +5,36 @@
     "title": "Agent <Pages/>"
   },
   "updatedAt": "",
+  "categories": [
+    {
+      "slug": "engineering",
+      "label": "Engineering"
+    },
+    {
+      "slug": "product",
+      "label": "Product"
+    },
+    {
+      "slug": "design",
+      "label": "Design"
+    },
+    {
+      "slug": "research",
+      "label": "Research"
+    },
+    {
+      "slug": "learning",
+      "label": "Learning"
+    },
+    {
+      "slug": "operations",
+      "label": "Operations"
+    },
+    {
+      "slug": "other",
+      "label": "Other"
+    }
+  ],
   "tags": [],
   "entries": []
 }
