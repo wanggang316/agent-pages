@@ -16,8 +16,7 @@ repo**, and push it so GitHub Pages (or any static host) serves it.
 
 ## What ships in the plugin
 
-- `.claude-plugin/plugin.json` — the plugin manifest
-- `.claude-plugin/marketplace.json` — the marketplace catalog (`source: ./`), so the repo installs as a plugin
+- `.claude-plugin/plugin.json` — the plugin manifest (the plugin is cataloged in the `wanggang316/claude-plugins` marketplace)
 - `hooks/{hooks.json, session-start.sh}` — SessionStart hook that injects the `use-agent-pages` doctrine
 - `skills/agent-pages/SKILL.md` — the workflow skill (paths via `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_PLUGIN_DATA}`)
 - `skills/use-agent-pages/SKILL.md` — the bootstrap meta-skill (injected each session)
@@ -51,8 +50,8 @@ before calling a script.
 Inside Claude Code:
 
 ```text
-/plugin marketplace add wanggang316/agent-pages
-/plugin install agent-pages@agent-pages
+/plugin marketplace add wanggang316/claude-plugins
+/plugin install agent-pages@wanggang316
 ```
 
 Then start a new session. On the human's first `/agent-pages`, run `setup.sh` once
@@ -86,5 +85,5 @@ If anything looks off (unexpected paths, destructive ops), warn the human and as
 
 ## Updating
 
-- The plugin: `/plugin marketplace update agent-pages`, then a new session (or `/reload-plugins`).
+- The plugin: `/plugin marketplace update wanggang316`, then a new session (or `/reload-plugins`).
 - The site scaffold after a template change: re-run `setup.sh --force` to re-copy `index.html` / `data.schema.json` (pages and `data.json` are kept unless forced).

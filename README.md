@@ -30,8 +30,8 @@ error-prone part (sync, dates, paths, data, commit/push).
 Install the plugin from the marketplace inside Claude Code:
 
 ```text
-/plugin marketplace add wanggang316/agent-pages
-/plugin install agent-pages@agent-pages
+/plugin marketplace add wanggang316/claude-plugins
+/plugin install agent-pages@wanggang316
 ```
 
 That registers the `agent-pages` workflow skill, the `use-agent-pages` bootstrap
@@ -54,16 +54,16 @@ publishes pages. (You can also run setup explicitly — see [Setup details](#set
 Three locations, cleanly separated:
 
 ```
-1. the plugin (installed from the marketplace; lives under ~/.claude/plugins/…)
+1. the plugin (installed from the wanggang316 marketplace; lives under ~/.claude/plugins/…)
    agent-pages/
-   ├── .claude-plugin/{plugin.json, marketplace.json}   ← manifest + marketplace (source: ./)
+   ├── .claude-plugin/plugin.json                        ← plugin manifest
    ├── skills/{agent-pages, use-agent-pages}/SKILL.md    ← the /agent-pages skill + injected doctrine
    ├── hooks/{hooks.json, session-start.sh}              ← injects use-agent-pages each session
    ├── scripts/{setup.sh, new-page.sh, publish.sh, lib/} ← the deterministic plumbing
    └── templates/{index.html, data.json, data.schema.json, CNAME.example}  ← site scaffold
 
 2. config + state (persistent, survives plugin updates)
-   ${CLAUDE_PLUGIN_DATA}/config.env   = ~/.claude/plugins/data/agent-pages-agent-pages/config.env
+   ${CLAUDE_PLUGIN_DATA}/config.env   = ~/.claude/plugins/data/agent-pages-wanggang316/config.env
 
 3. your site (a separate git repo you own → GitHub Pages)
    $AGENT_PAGES_PATH/
@@ -144,7 +144,7 @@ Netlify / Vercel / Cloudflare Pages also work — it's static HTML, no build ste
 
 ## Updating
 
-- **The plugin** (skills, hook, scripts, templates): `/plugin marketplace update agent-pages`, then start a new session (or `/reload-plugins`).
+- **The plugin** (skills, hook, scripts, templates): `/plugin marketplace update wanggang316`, then start a new session (or `/reload-plugins`).
 - **The site scaffold** after a template change: re-run `setup.sh --force` to re-copy `index.html` / `data.schema.json` (your `data.json` and pages are kept unless you also force them).
 
 ---
