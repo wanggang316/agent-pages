@@ -254,6 +254,11 @@
         font-size: 11px;
         font-variant-numeric: tabular-nums;
       }
+      /* mobile filter drawer — inert on desktop */
+      .filter-trigger { display: none; }
+      .drawer-head { display: none; }
+      .drawer-backdrop { display: none; }
+
       .gallery-head {
         display: flex;
         align-items: baseline;
@@ -384,12 +389,73 @@
           gap: var(--space-3);
         }
         .entries { width: 100%; }
+
+        /* filters become an off-canvas drawer */
+        .filter-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          align-self: flex-start;
+          margin-bottom: var(--space-2);
+          padding: 8px 14px;
+          border: 1px solid var(--rule);
+          border-radius: 999px;
+          background: var(--surface);
+          color: var(--text-2);
+          font: inherit;
+          font-size: 14px;
+          min-height: 38px;
+          cursor: pointer;
+        }
+        .filter-trigger svg { width: 16px; height: 16px; flex: none; }
+        .drawer-backdrop {
+          display: block;
+          position: fixed;
+          inset: 0;
+          z-index: 150;
+          background: rgba(0, 0, 0, 0.4);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+        }
+        .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+        body[data-drawer="open"] { overflow: hidden; }
         .filters {
-          position: static;
-          width: 100%;
-          padding-right: 0;
-          padding-bottom: var(--space-2);
-          border-bottom: 1px solid var(--rule);
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 200;
+          width: min(84vw, 320px);
+          height: 100dvh;
+          margin: 0;
+          padding: var(--space-3) var(--space-3) var(--space-4);
+          background: var(--bg);
+          border-right: 1px solid var(--rule);
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          transform: translateX(-100%);
+          transition: transform 0.25s ease;
+        }
+        .filters.open {
+          transform: translateX(0);
+          box-shadow: 0 0 40px rgba(0, 0, 0, 0.22);
+        }
+        .drawer-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: var(--space-3);
+        }
+        .drawer-head .drawer-title { font-size: 17px; font-weight: 600; }
+        .drawer-close {
+          border: 0;
+          background: transparent;
+          color: var(--text-2);
+          font-size: 22px;
+          line-height: 1;
+          cursor: pointer;
+          padding: 4px;
+          margin: -4px;
         }
         /* show every category/tag as a wrapping chip cloud — no scroll, no toggle */
         .category-list {
@@ -438,9 +504,15 @@
       </div>
     </nav>
 
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
     <main class="gallery">
       <div class="wrap gallery-layout">
-        <aside class="filters" aria-label="筛选">
+        <aside class="filters" id="filters" aria-label="筛选">
+          <div class="drawer-head">
+            <span class="drawer-title">筛选</span>
+            <button class="drawer-close" id="drawer-close" type="button" aria-label="关闭筛选">&times;</button>
+          </div>
           <section class="filter-section categories" aria-label="分类筛选">
             <h2>Categories</h2>
             <div class="category-list" id="category-list"></div>
@@ -452,6 +524,10 @@
         </aside>
 
         <section class="entries" aria-live="polite">
+          <button class="filter-trigger" id="filter-trigger" type="button" aria-controls="filters" aria-expanded="false">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1.5 2h13a.5.5 0 0 1 .38.83L10 8.7V13.5a.5.5 0 0 1-.74.44l-2.5-1.37A.5.5 0 0 1 6.5 12.13V8.7L1.12 2.83A.5.5 0 0 1 1.5 2z"/></svg>
+            筛选
+          </button>
           <div class="gallery-head">
             <h2 id="active-filter">全部页面</h2>
             <span class="gallery-count" id="gallery-count"></span>
@@ -489,7 +565,25 @@
         count: document.getElementById("gallery-count"),
         siteTitle: document.getElementById("site-title"),
         ghLink: document.getElementById("gh-link"),
+        filters: document.getElementById("filters"),
+        filterTrigger: document.getElementById("filter-trigger"),
+        drawerBackdrop: document.getElementById("drawer-backdrop"),
+        drawerClose: document.getElementById("drawer-close"),
       };
+
+      function openDrawer() {
+        elements.filters.classList.add("open");
+        elements.drawerBackdrop.classList.add("open");
+        document.body.dataset.drawer = "open";
+        elements.filterTrigger.setAttribute("aria-expanded", "true");
+      }
+
+      function closeDrawer() {
+        elements.filters.classList.remove("open");
+        elements.drawerBackdrop.classList.remove("open");
+        delete document.body.dataset.drawer;
+        elements.filterTrigger.setAttribute("aria-expanded", "false");
+      }
 
       const collator = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" });
 
@@ -622,6 +716,7 @@
           button.addEventListener("click", () => {
             state.activeTag = tag.slug;
             render();
+            closeDrawer();
           });
           return button;
         }));
@@ -652,6 +747,7 @@
             state.activeCategory = category.slug;
             state.activeTag = "all";
             render();
+            closeDrawer();
           });
           return button;
         }));
@@ -815,6 +911,13 @@
         }
         render();
       }
+
+      elements.filterTrigger.addEventListener("click", openDrawer);
+      elements.drawerBackdrop.addEventListener("click", closeDrawer);
+      elements.drawerClose.addEventListener("click", closeDrawer);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeDrawer();
+      });
 
       loadGallery();
     </script>
