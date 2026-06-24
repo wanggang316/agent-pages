@@ -124,6 +124,35 @@
         -webkit-text-fill-color: var(--text-3);
         font-weight: 400;
       }
+      nav.global .gh {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex: none;
+        color: var(--text-2);
+        font-size: 13px;
+        font-weight: 450;
+        line-height: 1;
+        padding: 5px 10px;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        min-height: 30px;
+        transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+      }
+      nav.global .gh[hidden] { display: none; }
+      nav.global .gh:hover {
+        color: var(--text);
+        border-color: var(--text-3);
+        background: var(--surface);
+      }
+      nav.global .gh svg { display: block; width: 16px; height: 16px; flex: none; }
+      nav.global .gh .gh-text {
+        max-width: 42vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       main.gallery { flex: 1; padding: var(--space-4) 0 var(--space-5); }
       .gallery-layout {
         display: grid;
@@ -148,16 +177,10 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
-      .categories {
-        --category-list-max-h: 150px;
-      }
       .category-list {
         display: grid;
         gap: 4px;
-        max-height: none;
-        overflow: hidden;
       }
-      .categories[data-expanded="false"] .category-list { max-height: var(--category-list-max-h); }
       .category-button {
         min-width: 0;
         width: 100%;
@@ -197,31 +220,11 @@
         font-size: 11px;
         font-variant-numeric: tabular-nums;
       }
-      .category-toggle,
-      .tag-toggle {
-        display: none;
-        margin-top: 10px;
-        min-height: 28px;
-        border: 0;
-        background: transparent;
-        color: var(--accent);
-        cursor: pointer;
-        font: inherit;
-        font-size: 12px;
-        padding: 0;
-      }
-      .categories[data-overflow="true"] .category-toggle { display: inline-flex; }
-      .tags {
-        --tag-list-max-h: 116px;
-      }
       .tag-list {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
-        max-height: none;
-        overflow: hidden;
       }
-      .tags[data-expanded="false"] .tag-list { max-height: var(--tag-list-max-h); }
       .tag-button {
         min-width: 0;
         max-width: 100%;
@@ -265,8 +268,6 @@
         font-size: 11px;
         font-variant-numeric: tabular-nums;
       }
-      .tags[data-overflow="true"] .tag-toggle { display: inline-flex; }
-
       .gallery-head {
         display: flex;
         align-items: baseline;
@@ -390,6 +391,8 @@
         nav.global .inner { padding: 0 var(--space-2); }
         nav.global .brand { font-size: 15px; }
         .brand .html { font-size: 14px; }
+        nav.global .gh { padding: 5px 8px; }
+        nav.global .gh .gh-text { display: none; }
         .gallery-layout {
           display: flex;
           flex-direction: column;
@@ -404,31 +407,34 @@
           padding-bottom: var(--space-2);
           border-bottom: 1px solid var(--rule);
         }
-        .categories { --category-list-max-h: 110px; }
-        .tags { --tag-list-max-h: 78px; }
-        .tag-list {
+        /* show every category/tag as a wrapping chip cloud — no scroll, no toggle */
+        .category-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .category-button {
+          width: auto;
+          display: inline-flex;
           gap: 6px;
-          padding-bottom: 2px;
+          min-height: 34px;
+          padding: 5px 12px;
+          border: 1px solid var(--rule);
+          border-radius: 999px;
         }
-        .tag-button {
-          min-height: 30px;
+        .category-button[aria-pressed="true"] {
+          border-color: color-mix(in srgb, var(--accent), transparent 68%);
         }
-        .gallery-head {
-          width: 100%;
-        }
+        .tag-list { gap: 8px; }
+        .tag-button { min-height: 32px; }
+        .gallery-head { width: 100%; }
         ul.list a {
           grid-template-columns: minmax(0, 1fr);
           gap: 4px;
         }
-        ul.list .date {
-          font-size: 12px;
-        }
-        .entry-tags {
-          margin-top: 0;
-        }
-        footer.global .inner {
-          padding: 20px var(--space-2);
-        }
+        ul.list .date { font-size: 12px; }
+        .entry-tags { margin-top: 0; }
+        footer.global .inner { padding: 20px var(--space-2); }
       }
     </style>
   </head>
@@ -442,6 +448,10 @@
             <span class="bracket">&lt;</span>Pages<span class="bracket">/&gt;</span>
           </span>
         </a>
+        <a class="gh" id="gh-link" hidden target="_blank" rel="noopener" aria-label="GitHub repository">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span class="gh-text" id="gh-text"></span>
+        </a>
       </div>
     </nav>
 
@@ -451,16 +461,10 @@
           <section class="filter-section categories" aria-label="分类筛选">
             <h2>Categories</h2>
             <div class="category-list" id="category-list"></div>
-            <button class="category-toggle" id="category-toggle" type="button" aria-expanded="false">
-              展开
-            </button>
           </section>
           <section class="filter-section tags" aria-label="标签筛选">
             <h2>Tags</h2>
             <div class="tag-list" id="tag-list"></div>
-            <button class="tag-toggle" id="tag-toggle" type="button" aria-expanded="false">
-              展开
-            </button>
           </section>
         </aside>
 
@@ -491,22 +495,18 @@
         data: { entries: [], tags: [] },
         activeCategory: "all",
         activeTag: "all",
-        categoriesExpanded: false,
-        tagsExpanded: false,
       };
 
       const elements = {
-        categoryPanel: document.querySelector(".categories"),
         categories: document.getElementById("category-list"),
-        categoryToggle: document.getElementById("category-toggle"),
-        tagPanel: document.querySelector(".tags"),
         tags: document.getElementById("tag-list"),
-        tagToggle: document.getElementById("tag-toggle"),
         entries: document.getElementById("entries"),
         empty: document.getElementById("empty"),
         activeFilter: document.getElementById("active-filter"),
         count: document.getElementById("gallery-count"),
         siteTitle: document.getElementById("site-title"),
+        ghLink: document.getElementById("gh-link"),
+        ghText: document.getElementById("gh-text"),
       };
 
       const collator = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" });
@@ -621,10 +621,6 @@
         const total = entries.length;
         const allTags = [{ slug: "all", label: "全部", count: total }, ...tags];
 
-        elements.tagPanel.dataset.expanded = String(state.tagsExpanded);
-        elements.tagToggle.textContent = state.tagsExpanded ? "收起" : "展开";
-        elements.tagToggle.setAttribute("aria-expanded", String(state.tagsExpanded));
-
         elements.tags.replaceChildren(...allTags.map((tag) => {
           const button = document.createElement("button");
           button.type = "button";
@@ -647,17 +643,12 @@
           });
           return button;
         }));
-        requestAnimationFrame(updateTagOverflow);
       }
 
       function renderCategories() {
         const categories = getCategories(state.data);
         const total = Array.isArray(state.data.entries) ? state.data.entries.length : 0;
         const allCategories = [{ slug: "all", label: "全部", count: total }, ...categories];
-
-        elements.categoryPanel.dataset.expanded = String(state.categoriesExpanded);
-        elements.categoryToggle.textContent = state.categoriesExpanded ? "收起" : "展开";
-        elements.categoryToggle.setAttribute("aria-expanded", String(state.categoriesExpanded));
 
         elements.categories.replaceChildren(...allCategories.map((category) => {
           const button = document.createElement("button");
@@ -682,23 +673,17 @@
           });
           return button;
         }));
-        requestAnimationFrame(updateCategoryOverflow);
       }
 
-      function updateCategoryOverflow() {
-        const wasExpanded = elements.categoryPanel.dataset.expanded;
-        elements.categoryPanel.dataset.expanded = "false";
-        const hasOverflow = elements.categories.scrollHeight > elements.categories.clientHeight + 1;
-        elements.categoryPanel.dataset.overflow = String(hasOverflow);
-        elements.categoryPanel.dataset.expanded = wasExpanded;
-      }
-
-      function updateTagOverflow() {
-        const wasExpanded = elements.tagPanel.dataset.expanded;
-        elements.tagPanel.dataset.expanded = "false";
-        const hasOverflow = elements.tags.scrollHeight > elements.tags.clientHeight + 1;
-        elements.tagPanel.dataset.overflow = String(hasOverflow);
-        elements.tagPanel.dataset.expanded = wasExpanded;
+      function repoLink(raw) {
+        const s = normalizeTag(raw);
+        if (!s) return null;
+        let m = s.match(/github\.com[/:]([^/]+\/[^/]+?)(?:\.git)?\/?$/i);
+        if (m) return { href: "https://github.com/" + m[1], label: m[1] };
+        m = s.match(/^([\w.-]+\/[\w.-]+?)(?:\.git)?$/);
+        if (m) return { href: "https://github.com/" + m[1], label: m[1] };
+        if (/^https?:\/\//i.test(s)) return { href: s, label: "GitHub" };
+        return null;
       }
 
       function splitSiteTitle(title) {
@@ -749,6 +734,15 @@
         elements.siteTitle.replaceChildren(...children);
         elements.siteTitle.setAttribute("aria-label", title);
         document.title = title;
+
+        const link = repoLink(site.repo);
+        if (link) {
+          elements.ghLink.href = link.href;
+          elements.ghText.textContent = link.label;
+          elements.ghLink.hidden = false;
+        } else {
+          elements.ghLink.hidden = true;
+        }
       }
 
       function renderEntries() {
@@ -840,21 +834,6 @@
         }
         render();
       }
-
-      elements.categoryToggle.addEventListener("click", () => {
-        state.categoriesExpanded = !state.categoriesExpanded;
-        renderCategories();
-      });
-
-      elements.tagToggle.addEventListener("click", () => {
-        state.tagsExpanded = !state.tagsExpanded;
-        renderTags();
-      });
-
-      window.addEventListener("resize", () => {
-        requestAnimationFrame(updateCategoryOverflow);
-        requestAnimationFrame(updateTagOverflow);
-      });
 
       loadGallery();
     </script>

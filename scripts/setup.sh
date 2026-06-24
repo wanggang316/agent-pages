@@ -90,8 +90,9 @@ fi
 # --- 2. seed data.json metadata ---
 data_json="$site_path/data.json"
 if [ -f "$data_json" ] && command -v python3 >/dev/null 2>&1; then
-  python3 - "$data_json" "$name" <<'PY'
+  python3 - "$data_json" "$name" "$repo" <<'PY'
 import json
+import re
 import sys
 
 DEFAULT_CATEGORIES = [
@@ -104,7 +105,16 @@ DEFAULT_CATEGORIES = [
     {"slug": "other", "label": "Other"},
 ]
 
-path, title = sys.argv[1:3]
+def repo_https(raw):
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    m = re.search(r"github\.com[/:]([^/]+/[^/]+?)(?:\.git)?/?$", raw, re.I)
+    if m:
+        return "https://github.com/" + m.group(1)
+    return raw
+
+path, title, repo = sys.argv[1:4]
 with open(path, "r", encoding="utf-8") as fh:
     data = json.load(fh)
 site = data.setdefault("site", {})
@@ -112,6 +122,9 @@ data.setdefault("$schema", "./data.schema.json")
 data.setdefault("categories", DEFAULT_CATEGORIES)
 site["title"] = title
 site.pop("description", None)
+repo = repo_https(repo)
+if repo:
+    site["repo"] = repo
 with open(path, "w", encoding="utf-8") as fh:
     json.dump(data, fh, ensure_ascii=False, indent=2)
     fh.write("\n")
